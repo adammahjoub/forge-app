@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0A0A0A"/>
+  <!-- Lime accent bar -->
+  <rect x="48" y="48" width="36" height="416" fill="#C8FF00"/>
+  <!-- F letterform -->
+  <rect x="112" y="48" width="280" height="52" fill="#EEEEEE"/>
+  <rect x="112" y="48" width="52" height="416" fill="#EEEEEE"/>
+  <rect x="112" y="233" width="218" height="48" fill="#EEEEEE"/>
+  <!-- Lime dot -->
+  <circle cx="428" cy="428" r="30" fill="#C8FF00"/>
+</svg>

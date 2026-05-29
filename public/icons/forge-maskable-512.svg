@@ -1,0 +1,12 @@
+<!-- Maskable: safe zone is inner 80% (51px padding each side on 512px canvas) -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0A0A0A"/>
+  <!-- Lime accent bar (inset for safe zone) -->
+  <rect x="70" y="70" width="30" height="372" fill="#C8FF00"/>
+  <!-- F letterform -->
+  <rect x="115" y="70" width="248" height="46" fill="#EEEEEE"/>
+  <rect x="115" y="70" width="46" height="372" fill="#EEEEEE"/>
+  <rect x="115" y="233" width="192" height="42" fill="#EEEEEE"/>
+  <!-- Lime dot -->
+  <circle cx="406" cy="406" r="26" fill="#C8FF00"/>
+</svg>
