@@ -11,6 +11,8 @@
 html, body, #root {
   height: 100%;
   overscroll-behavior: none;
+  background-color: #0A0A0A;
+  color: #EEEEEE;
 }
 
 /* Remove number input spinners */

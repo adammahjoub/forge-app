@@ -5,6 +5,8 @@ import NutritionTracker from './components/NutritionTracker'
 import Progress from './components/Progress'
 import Settings from './components/Settings'
 
+const SETTINGS_VERSION = 3 // bump this to force-reset stale settings
+
 const DEFAULT_SETTINGS = {
   calories: 2400,
   protein: 190,
@@ -13,6 +15,7 @@ const DEFAULT_SETTINGS = {
   startDate: new Date().toISOString().split('T')[0],
   weight: 82,
   bodyFat: 20,
+  _v: SETTINGS_VERSION,
 }
 
 const todayStr = () => new Date().toISOString().split('T')[0]
@@ -22,9 +25,18 @@ function load(key, fallback) {
   catch { return fallback }
 }
 
+function loadSettings() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('forge_settings'))
+    // If version mismatch or no version, reset to defaults (preserve data logs)
+    if (!stored || stored._v !== SETTINGS_VERSION) return DEFAULT_SETTINGS
+    return stored
+  } catch { return DEFAULT_SETTINGS }
+}
+
 export default function App() {
   const [activeTab, setActiveTab]       = useState('dashboard')
-  const [settings, setSettings]         = useState(() => load('forge_settings', DEFAULT_SETTINGS))
+  const [settings, setSettings]         = useState(() => loadSettings())
   const [logs, setLogs]                 = useState(() => load('forge_logs', {}))
   const [workoutLogs, setWorkoutLogs]   = useState(() => load('forge_workout_logs', {}))
   const [measurements, setMeasurements] = useState(() => load('forge_measurements', []))
