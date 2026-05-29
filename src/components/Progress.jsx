@@ -165,7 +165,7 @@ export default function Progress({ measurements, addMeasurement, settings }) {
       ) : (
         <div className="card overflow-hidden">
           {[...measurements].reverse().slice(0, 12).map((m, i, arr) => (
-            <div key={m.date} className="px-4 py-3"
+            <div key={m.date} className="list-row px-4 py-3"
               style={i < arr.length - 1 ? { borderBottom: '0.5px solid var(--border)' } : {}}>
               <div className="flex justify-between items-center mb-1">
                 <span className="text-[9px] tracking-widest" style={{ color: 'var(--muted)' }}>{m.date}</span>

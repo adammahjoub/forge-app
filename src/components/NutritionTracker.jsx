@@ -134,7 +134,7 @@ export default function NutritionTracker({ settings, logs, updateTodayLog }) {
       ) : (
         <div className="space-y-2">
           {(todayLog.meals || []).map(meal => (
-            <div key={meal.id} className="card p-3 flex items-center justify-between">
+            <div key={meal.id} className="card list-row p-3 flex items-center justify-between">
               <div className="flex-1 min-w-0 mr-3">
                 <p className="text-sm font-bold truncate" style={{ color: 'var(--strong)' }}>{meal.name}</p>
                 <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted)' }}>

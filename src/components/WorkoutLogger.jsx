@@ -93,7 +93,7 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog }) {
       <div className="space-y-2">
         {WORKOUT_TEMPLATES.map(tmpl => (
           <button key={tmpl.id} onClick={() => startSession(tmpl)}
-            className="w-full card p-4 text-left transition-all duration-200 hover:border-purple-400/30 active:opacity-70">
+            className="w-full card list-row p-4 text-left active:scale-[0.98]">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <span className="badge-medium mb-2 inline-block">{tmpl.tag}</span>
@@ -123,7 +123,7 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog }) {
             .sort((a, b) => b[0].localeCompare(a[0]))
             .slice(0, 7)
             .map(([date, log], i, arr) => (
-              <div key={date} className="flex justify-between items-center px-4 py-3"
+              <div key={date} className="list-row flex justify-between items-center px-4 py-3"
                 style={i < arr.length - 1 ? { borderBottom: '0.5px solid var(--border)' } : {}}>
                 <span className="text-xs" style={{ color: 'var(--muted)' }}>{date}</span>
                 <span className="text-xs font-bold gradient-text">{log.templateName}</span>
