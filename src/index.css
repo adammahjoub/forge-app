@@ -20,26 +20,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Remove number input spinners */
-input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+/* ─── Grain texture overlay ─────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 220px 220px;
 }
+
+/* ─── Remove number spinners ─────────────────────────────────────── */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type='number'] { -moz-appearance: textfield; }
 
-/* Thin scrollbar */
+/* ─── Scrollbar ──────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 2px; }
 ::-webkit-scrollbar-track { background: #F0EDE8; }
 ::-webkit-scrollbar-thumb { background: #C4B8AC; }
 
-/* Progress bar fill animation */
+/* ─── Transitions ────────────────────────────────────────────────── */
 .bar-fill { transition: width 0.65s cubic-bezier(0.4, 0, 0.2, 1); }
+circle    { transition: stroke-dashoffset 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
 
-/* SVG ring transition */
-circle { transition: stroke-dashoffset 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
-
-/* Celebration */
+/* ─── Celebration ────────────────────────────────────────────────── */
 @keyframes celebratePop {
   0%   { transform: scale(0.6) translateY(16px); opacity: 0; }
   45%  { transform: scale(1.08) translateY(0);   opacity: 1; }
@@ -50,25 +58,32 @@ circle { transition: stroke-dashoffset 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
   65%  { opacity: 1; }
   100% { opacity: 0; }
 }
-.celebrate-pop  { animation: celebratePop  0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.celebrate-pop  { animation: celebratePop  0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
 .celebrate-fade { animation: celebrateFade 2.8s ease forwards; }
 
-/* Check pop */
+/* ─── Check pop ──────────────────────────────────────────────────── */
 @keyframes checkPop {
   0%   { transform: scale(0); }
   60%  { transform: scale(1.25); }
   100% { transform: scale(1); }
 }
-.check-pop { animation: checkPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.check-pop { animation: checkPop 0.22s cubic-bezier(0.34,1.56,0.64,1) forwards; }
 
-/* Streak subtle pulse */
+/* ─── Streak pulse ───────────────────────────────────────────────── */
 @keyframes streakPulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.55; }
+  50%       { opacity: 0.5; }
 }
 .streak-pulse { animation: streakPulse 2.4s ease-in-out infinite; }
 
-/* Serif utility */
+/* ─── Illustration float ─────────────────────────────────────────── */
+@keyframes illustrationFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-5px); }
+}
+.illus-float { animation: illustrationFloat 4s ease-in-out infinite; }
+
+/* ─── Font utility ───────────────────────────────────────────────── */
 .font-display {
   font-family: 'Cormorant Garamond', Georgia, serif;
 }
