@@ -1,17 +1,14 @@
 import { useState } from 'react'
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-} from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
-const todayStr = () => new Date().toISOString().split('T')[0]
-const isMonday = new Date().getDay() === 1
+const todayStr  = () => new Date().toISOString().split('T')[0]
+const isMonday  = new Date().getDay() === 1
 
-const CustomTooltip = ({ active, payload, label, dm }) => {
+const CustomTooltip = ({ active, payload, label, theme }) => {
   if (!active || !payload?.length) return null
   return (
-    <div className={`${dm ? 'bg-[#111] border-[#2A2A2A]' : 'bg-white border-gray-200'} border p-2 text-[10px]`}
-         style={{ fontFamily: 'Space Mono' }}>
-      <p className="text-[#C8FF00] mb-1">{label}</p>
+    <div className="p-2 text-xs font-sans" style={{ background: theme.surface, border: `1px solid ${theme.border}` }}>
+      <p className="mb-1 font-medium">{label}</p>
       {payload.map(p => (
         <p key={p.name} style={{ color: p.color }}>{p.name}: {p.value}</p>
       ))}
@@ -19,9 +16,9 @@ const CustomTooltip = ({ active, payload, label, dm }) => {
   )
 }
 
-export default function Progress({ measurements, addMeasurement, settings, dm }) {
+export default function Progress({ measurements, addMeasurement, settings, theme }) {
   const today = todayStr()
-  const [showForm, setShowForm]  = useState(isMonday)
+  const [showForm, setShowForm] = useState(isMonday && !measurements.find(m => m.date === today))
   const [form, setForm] = useState({ weight: '', waist: '', hips: '', chest: '', arms: '' })
 
   const submit = () => {
@@ -45,170 +42,163 @@ export default function Progress({ measurements, addMeasurement, settings, dm })
     waist:  m.waist,
   }))
 
-  // Overall change since first entry
   const delta = (() => {
     if (measurements.length < 2) return null
-    const first = measurements[0]
-    const last  = measurements[measurements.length - 1]
+    const first = measurements[0], last = measurements[measurements.length - 1]
     const dw  = ((last.weight || 0) - (first.weight || 0)).toFixed(1)
     const dWs = ((last.waist  || 0) - (first.waist  || 0)).toFixed(1)
-    // ~0.5% BF per 1cm waist reduction (rough estimate)
     const dBF = (parseFloat(dWs) * 0.5).toFixed(1)
-    return { dw, dWs, dBF, weeks: Math.round((new Date(last.date) - new Date(first.date)) / 604800000) }
+    const weeks = Math.round((new Date(last.date) - new Date(first.date)) / 604800000)
+    return { dw, dWs, dBF, weeks }
   })()
 
-  const border  = dm ? 'border-[#1E1E1E]' : 'border-gray-200'
-  const inputCls = `flex-1 bg-transparent border ${dm ? 'border-[#2A2A2A]' : 'border-gray-300'} p-2.5 text-sm outline-none focus:border-[#C8FF00] transition-colors`
+  const sign = v => (parseFloat(v) > 0 ? '+' : '') + v
 
-  const sign = (v) => (parseFloat(v) > 0 ? '+' : '') + v
+  const inputStyle = {
+    flex: 1,
+    background: 'transparent',
+    border: `1px solid ${theme.border}`,
+    color: theme.text,
+    outline: 'none',
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: '14px',
+    padding: '10px 12px',
+  }
 
   return (
-    <div className="px-4 pt-6 pb-4">
-      <div className="flex items-end justify-between mb-6">
+    <div className="px-5 pt-10 pb-6">
+      <div className="flex items-end justify-between mb-10">
         <div>
-          <p className="text-[10px] tracking-[0.25em] text-gray-600 mb-0.5">BODY METRICS</p>
-          <h1 className="text-4xl font-bold tracking-tight">PROGRESS</h1>
+          <p className="text-[10px] uppercase tracking-[0.25em] font-sans mb-1" style={{ color: theme.muted }}>Body metrics</p>
+          <h1 className="font-display text-6xl font-semibold tracking-tight leading-none">Progress</h1>
         </div>
         {isMonday && (
-          <div className="border border-[#C8FF00] px-2 py-1 text-[9px] tracking-widest text-[#C8FF00]">
-            CHECK-IN DAY
+          <div className="px-2 py-1 text-[9px] uppercase tracking-widest font-sans"
+            style={{ border: `1px solid ${theme.ink}`, color: theme.ink }}>
+            Check-in
           </div>
         )}
       </div>
 
       {/* Monday prompt */}
-      {isMonday && !measurements.find(m => m.date === today) && (
-        <div className="border border-[#C8FF00] bg-[#C8FF00]/5 p-4 mb-4">
-          <p className="text-[#C8FF00] font-bold text-sm mb-1">⚡ MONDAY CHECK-IN</p>
-          <p className="text-xs text-gray-500 mb-3">Log your weekly measurements to track progress.</p>
-          {!showForm && (
-            <button onClick={() => setShowForm(true)}
-              className="w-full py-2 bg-[#C8FF00] text-black text-xs tracking-widest font-bold">
-              LOG NOW
-            </button>
-          )}
+      {isMonday && !measurements.find(m => m.date === today) && !showForm && (
+        <div className="p-5 mb-6" style={{ border: `1px solid ${theme.border}` }}>
+          <p className="font-display text-xl font-semibold mb-1">Monday check-in</p>
+          <p className="text-xs font-sans mb-4" style={{ color: theme.muted }}>Log your weekly measurements to track progress.</p>
+          <button onClick={() => setShowForm(true)}
+            className="w-full py-3 text-xs uppercase tracking-[0.15em] font-sans font-medium transition-opacity active:opacity-70"
+            style={{ background: theme.ink, color: theme.surface }}>
+            Log now
+          </button>
         </div>
       )}
 
-      {/* Overall delta */}
+      {/* Delta strip */}
       {delta && (
-        <div className={`grid grid-cols-3 border ${border} mb-3`}>
-          {[
-            ['WEIGHT Δ', `${sign(delta.dw)}kg`],
-            ['WAIST Δ',  `${sign(delta.dWs)}cm`],
-            ['EST BF Δ', `${sign(delta.dBF)}%`],
-          ].map(([lbl, val], i) => (
-            <div key={lbl} className={`py-3 px-2 text-center ${i === 1 ? `border-x ${border}` : ''}`}>
-              <p className="text-[9px] tracking-widest text-gray-600 mb-1">{lbl}</p>
-              <p className={`text-sm font-bold ${parseFloat(val) < 0 ? 'text-[#C8FF00]' : parseFloat(val) > 0 ? 'text-[#FF8888]' : ''}`}>{val}</p>
-            </div>
-          ))}
-        </div>
-      )}
-      {delta && (
-        <p className="text-[9px] text-gray-600 mb-3 tracking-widest">
-          OVER {delta.weeks} WEEK{delta.weeks !== 1 ? 'S' : ''} · ESTIMATED FROM WEIGHT + WAIST TREND
-        </p>
+        <>
+          <div className="grid grid-cols-3 mb-2" style={{ border: `1px solid ${theme.border}` }}>
+            {[
+              ['Weight Δ', `${sign(delta.dw)} kg`],
+              ['Waist Δ',  `${sign(delta.dWs)} cm`],
+              ['Est BF Δ', `${sign(delta.dBF)} %`],
+            ].map(([lbl, val], i) => (
+              <div key={lbl} className="py-4 px-3 text-center"
+                style={i === 1 ? { borderLeft: `1px solid ${theme.border}`, borderRight: `1px solid ${theme.border}` } : {}}>
+                <p className="text-[9px] uppercase tracking-widest font-sans mb-1" style={{ color: theme.muted }}>{lbl}</p>
+                <p className="font-display text-xl font-semibold">{val}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-[9px] font-sans mb-6 uppercase tracking-widest" style={{ color: theme.muted }}>
+            Over {delta.weeks} week{delta.weeks !== 1 ? 's' : ''} · estimated from weight + waist
+          </p>
+        </>
       )}
 
       {/* Chart */}
       {chartData.length >= 2 && (
-        <div className={`border ${border} p-4 mb-3`}>
-          <p className="text-[9px] tracking-widest text-gray-600 mb-4">WEIGHT + WAIST TREND</p>
+        <div className="p-5 mb-6" style={{ border: `1px solid ${theme.border}` }}>
+          <p className="text-[9px] uppercase tracking-widest font-sans mb-5" style={{ color: theme.muted }}>Weight + waist trend</p>
           <ResponsiveContainer width="100%" height={160}>
-            <LineChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
-              <CartesianGrid strokeDasharray="1 4" stroke={dm ? '#1C1C1C' : '#EEE'} />
-              <XAxis
-                dataKey="date"
-                stroke="transparent"
-                tick={{ fontSize: 8, fill: '#555', fontFamily: 'Space Mono' }}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                stroke="transparent"
-                tick={{ fontSize: 8, fill: '#555', fontFamily: 'Space Mono' }}
-              />
-              <Tooltip content={<CustomTooltip dm={dm} />} />
-              <Line type="monotone" dataKey="weight" stroke="#C8FF00" strokeWidth={2} dot={false} name="WEIGHT" connectNulls />
-              <Line type="monotone" dataKey="waist"  stroke="#666"    strokeWidth={1.5} dot={false} name="WAIST" strokeDasharray="3 3" connectNulls />
+            <LineChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -24 }}>
+              <CartesianGrid strokeDasharray="1 4" stroke={theme.border} />
+              <XAxis dataKey="date" stroke="transparent"
+                tick={{ fontSize: 8, fill: theme.muted, fontFamily: 'Inter' }} interval="preserveStartEnd" />
+              <YAxis stroke="transparent"
+                tick={{ fontSize: 8, fill: theme.muted, fontFamily: 'Inter' }} />
+              <Tooltip content={<CustomTooltip theme={theme} />} />
+              <Line type="monotone" dataKey="weight" stroke={theme.ink}  strokeWidth={1.5} dot={false} name="Weight" connectNulls />
+              <Line type="monotone" dataKey="waist"  stroke={theme.muted} strokeWidth={1}   dot={false} name="Waist"  strokeDasharray="3 3" connectNulls />
             </LineChart>
           </ResponsiveContainer>
           <div className="flex gap-5 mt-3">
             <div className="flex items-center gap-1.5">
-              <div className="w-5 h-0.5 bg-[#C8FF00]" />
-              <span className="text-[9px] text-gray-500">WEIGHT</span>
+              <div className="w-5 h-px" style={{ background: theme.ink }} />
+              <span className="text-[9px] font-sans uppercase tracking-widest" style={{ color: theme.muted }}>Weight</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-5 h-0.5 bg-[#666]" style={{ backgroundImage: 'repeating-linear-gradient(to right,#666 0,#666 3px,transparent 3px,transparent 6px)' }} />
-              <span className="text-[9px] text-gray-500">WAIST</span>
+              <div className="w-5 h-px" style={{ background: theme.muted }} />
+              <span className="text-[9px] font-sans uppercase tracking-widest" style={{ color: theme.muted }}>Waist</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Log form toggle */}
+      {/* Log button */}
       {!isMonday && (
-        <button
-          onClick={() => setShowForm(f => !f)}
-          className={`w-full border ${showForm ? 'border-[#C8FF00] text-[#C8FF00]' : border + ' text-gray-500'} py-3 text-[10px] tracking-widest mb-3 transition-colors`}
-        >
-          {showForm ? 'CANCEL' : '+ LOG MEASUREMENTS'}
+        <button onClick={() => setShowForm(f => !f)}
+          className="w-full py-3 text-[10px] uppercase tracking-widest font-sans mb-4 transition-colors"
+          style={{ border: `1px solid ${showForm ? theme.ink : theme.border}`, color: showForm ? theme.ink : theme.muted }}>
+          {showForm ? 'Cancel' : '+ Log measurements'}
         </button>
       )}
 
-      {/* Entry form */}
+      {/* Form */}
       {showForm && (
-        <div className={`border ${border} p-4 mb-3`}>
-          <p className="text-[9px] tracking-widest text-gray-600 mb-3">NEW ENTRY — {today}</p>
+        <div className="p-5 mb-4" style={{ border: `1px solid ${theme.border}` }}>
+          <p className="text-[9px] uppercase tracking-widest font-sans mb-4" style={{ color: theme.muted }}>New entry — {today}</p>
           <div className="space-y-2">
             {[
-              ['weight', 'WEIGHT (kg)'],
-              ['waist',  'WAIST (cm)'],
-              ['hips',   'HIPS (cm)'],
-              ['chest',  'CHEST (cm)'],
-              ['arms',   'ARMS (cm)'],
+              ['weight', 'Weight (kg)'],
+              ['waist',  'Waist (cm)'],
+              ['hips',   'Hips (cm)'],
+              ['chest',  'Chest (cm)'],
+              ['arms',   'Arms (cm)'],
             ].map(([key, lbl]) => (
               <div key={key} className="flex items-center gap-3">
-                <span className="text-[9px] tracking-widest text-gray-600 w-24 flex-shrink-0">{lbl}</span>
-                <input
-                  value={form[key]}
-                  onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-                  type="number"
-                  step="0.1"
-                  className={inputCls}
-                  placeholder="—"
-                />
+                <span className="text-[9px] uppercase tracking-widest font-sans flex-shrink-0 w-24" style={{ color: theme.muted }}>{lbl}</span>
+                <input value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
+                  type="number" step="0.1" placeholder="—" style={inputStyle} />
               </div>
             ))}
           </div>
-          <button
-            onClick={submit}
-            className="w-full mt-4 py-3 bg-[#C8FF00] text-black text-xs tracking-widest font-bold active:opacity-80"
-          >
-            SAVE ENTRY
+          <button onClick={submit}
+            className="w-full mt-4 py-3 text-xs uppercase tracking-[0.15em] font-sans font-medium transition-opacity active:opacity-70"
+            style={{ background: theme.ink, color: theme.surface }}>
+            Save entry
           </button>
         </div>
       )}
 
       {/* History */}
-      <p className="text-[9px] tracking-widest text-gray-600 mb-2">HISTORY</p>
+      <p className="text-[9px] uppercase tracking-widest font-sans mb-3" style={{ color: theme.muted }}>History</p>
       {measurements.length === 0 && (
-        <p className={`text-xs ${dm ? 'text-gray-700' : 'text-gray-400'} text-center py-4 tracking-widest`}>
-          NO MEASUREMENTS YET
+        <p className="text-xs font-sans text-center py-4 uppercase tracking-widest" style={{ color: theme.muted }}>
+          No measurements yet
         </p>
       )}
       <div className="space-y-1">
         {[...measurements].reverse().slice(0, 12).map(m => (
-          <div key={m.date} className={`border ${border} p-3`}>
+          <div key={m.date} className="p-4" style={{ border: `1px solid ${theme.border}` }}>
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[9px] tracking-widest text-gray-600">{m.date}</span>
-              <span className="font-bold text-sm">{m.weight ? `${m.weight}kg` : '—'}</span>
+              <span className="text-[9px] uppercase tracking-widest font-sans" style={{ color: theme.muted }}>{m.date}</span>
+              <span className="font-display text-lg font-semibold">{m.weight ? `${m.weight} kg` : '—'}</span>
             </div>
-            <div className="flex flex-wrap gap-3 text-[9px] text-gray-600">
-              {m.waist && <span>WAIST {m.waist}cm</span>}
-              {m.hips  && <span>HIPS {m.hips}cm</span>}
-              {m.chest && <span>CHEST {m.chest}cm</span>}
-              {m.arms  && <span>ARMS {m.arms}cm</span>}
+            <div className="flex flex-wrap gap-3 text-[9px] font-sans uppercase tracking-widest" style={{ color: theme.muted }}>
+              {m.waist && <span>Waist {m.waist}cm</span>}
+              {m.hips  && <span>Hips {m.hips}cm</span>}
+              {m.chest && <span>Chest {m.chest}cm</span>}
+              {m.arms  && <span>Arms {m.arms}cm</span>}
             </div>
           </div>
         ))}

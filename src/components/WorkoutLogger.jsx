@@ -3,11 +3,11 @@ import { WORKOUT_TEMPLATES } from '../data/workouts'
 
 const todayStr = () => new Date().toISOString().split('T')[0]
 
-export default function WorkoutLogger({ workoutLogs, updateWorkoutLog, dm }) {
+export default function WorkoutLogger({ workoutLogs, updateWorkoutLog, theme }) {
   const today     = todayStr()
   const todayWork = workoutLogs[today] || {}
 
-  const [view,      setView]      = useState('select') // 'select' | 'active'
+  const [view,      setView]      = useState('select')
   const [template,  setTemplate]  = useState(null)
   const [exercises, setExercises] = useState([])
 
@@ -16,18 +16,14 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog, dm }) {
       ...ex,
       sets: [{ reps: ex.defaultReps, weight: ex.defaultWeight, done: false }],
     }))
-    setTemplate(tmpl)
-    setExercises(exs)
-    setView('active')
+    setTemplate(tmpl); setExercises(exs); setView('active')
     updateWorkoutLog(today, { templateId: tmpl.id, templateName: tmpl.name, completed: false, exercises: exs })
   }
 
   const resumeSession = () => {
     const tmpl = WORKOUT_TEMPLATES.find(t => t.id === todayWork.templateId)
     if (!tmpl) return
-    setTemplate(tmpl)
-    setExercises(todayWork.exercises || [])
-    setView('active')
+    setTemplate(tmpl); setExercises(todayWork.exercises || []); setView('active')
   }
 
   const addSet = (ei) => {
@@ -36,8 +32,7 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog, dm }) {
       const last = ex.sets[ex.sets.length - 1]
       return { ...ex, sets: [...ex.sets, { ...last, done: false }] }
     })
-    setExercises(updated)
-    updateWorkoutLog(today, { exercises: updated })
+    setExercises(updated); updateWorkoutLog(today, { exercises: updated })
   }
 
   const removeSet = (ei, si) => {
@@ -45,112 +40,102 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog, dm }) {
     const updated = exercises.map((ex, i) =>
       i !== ei ? ex : { ...ex, sets: ex.sets.filter((_, j) => j !== si) }
     )
-    setExercises(updated)
-    updateWorkoutLog(today, { exercises: updated })
+    setExercises(updated); updateWorkoutLog(today, { exercises: updated })
   }
 
   const updateSet = (ei, si, field, val) => {
     const updated = exercises.map((ex, i) =>
-      i !== ei ? ex : {
-        ...ex,
-        sets: ex.sets.map((s, j) => j !== si ? s : { ...s, [field]: val }),
-      }
+      i !== ei ? ex : { ...ex, sets: ex.sets.map((s, j) => j !== si ? s : { ...s, [field]: val }) }
     )
-    setExercises(updated)
-    updateWorkoutLog(today, { exercises: updated })
+    setExercises(updated); updateWorkoutLog(today, { exercises: updated })
   }
 
-  const toggleDone = (ei, si) => {
-    updateSet(ei, si, 'done', !exercises[ei].sets[si].done)
-  }
-
-  const completeSession = () => {
-    updateWorkoutLog(today, { completed: true })
-    setView('select')
-  }
+  const toggleDone    = (ei, si) => updateSet(ei, si, 'done', !exercises[ei].sets[si].done)
+  const completeSession = () => { updateWorkoutLog(today, { completed: true }); setView('select') }
 
   if (view === 'active' && template) {
-    return (
-      <ActiveSession
-        template={template}
-        exercises={exercises}
-        onAddSet={addSet}
-        onRemoveSet={removeSet}
-        onUpdateSet={updateSet}
-        onToggleDone={toggleDone}
-        onComplete={completeSession}
-        onBack={() => setView('select')}
-        dm={dm}
-      />
-    )
+    return <ActiveSession
+      template={template} exercises={exercises}
+      onAddSet={addSet} onRemoveSet={removeSet}
+      onUpdateSet={updateSet} onToggleDone={toggleDone}
+      onComplete={completeSession} onBack={() => setView('select')} theme={theme}
+    />
   }
 
-  const border = dm ? 'border-[#1E1E1E]' : 'border-gray-200'
+  const inputStyle = {
+    background: 'transparent',
+    border: `1px solid ${theme.border}`,
+    color: theme.text,
+    outline: 'none',
+    fontFamily: 'Inter, system-ui, sans-serif',
+  }
 
   return (
-    <div className="px-4 pt-6 pb-4">
-      <div className="flex items-end justify-between mb-6">
+    <div className="px-5 pt-10 pb-6">
+      <div className="flex items-end justify-between mb-10">
         <div>
-          <p className="text-[10px] tracking-[0.25em] text-gray-600 mb-0.5">4-DAY SPLIT</p>
-          <h1 className="text-4xl font-bold tracking-tight">TRAINING</h1>
+          <p className="text-[10px] uppercase tracking-[0.25em] font-sans mb-1" style={{ color: theme.muted }}>4-day split</p>
+          <h1 className="font-display text-6xl font-semibold tracking-tight leading-none">Training</h1>
         </div>
       </div>
 
-      {/* Today status banner */}
+      {/* Today status */}
       {todayWork.completed && (
-        <div className="border border-[#C8FF00] p-4 mb-4">
-          <p className="text-[#C8FF00] font-bold">✓ {todayWork.templateName} COMPLETE</p>
-          <p className="text-[9px] text-gray-600 mt-1">SESSION LOCKED IN FOR TODAY</p>
+        <div className="p-4 mb-6 flex items-center justify-between"
+          style={{ border: `1px solid ${theme.ink}` }}>
+          <div>
+            <p className="text-[9px] uppercase tracking-widest font-sans mb-0.5" style={{ color: theme.muted }}>Completed</p>
+            <p className="font-sans text-sm font-medium">{todayWork.templateName}</p>
+          </div>
+          <span className="check-pop text-lg">✓</span>
         </div>
       )}
+
       {todayWork.templateId && !todayWork.completed && (
-        <button
-          onClick={resumeSession}
-          className="w-full border border-[#C8FF00] p-4 mb-4 text-left"
-        >
-          <p className="text-[9px] tracking-widest text-[#C8FF00] mb-1">IN PROGRESS</p>
-          <p className="font-bold">{todayWork.templateName} — RESUME →</p>
+        <button onClick={resumeSession} className="w-full p-4 mb-6 text-left transition-opacity active:opacity-70"
+          style={{ border: `1px solid ${theme.ink}` }}>
+          <p className="text-[9px] uppercase tracking-widest font-sans mb-0.5" style={{ color: theme.muted }}>In progress</p>
+          <p className="font-sans text-sm font-medium">{todayWork.templateName} — Resume →</p>
         </button>
       )}
 
-      {/* Template grid */}
-      <p className="text-[9px] tracking-widest text-gray-600 mb-3">SELECT SESSION</p>
-      <div className="space-y-2 mb-6">
+      {/* Templates */}
+      <p className="text-[9px] uppercase tracking-widest font-sans mb-3" style={{ color: theme.muted }}>Select session</p>
+      <div className="space-y-2 mb-8">
         {WORKOUT_TEMPLATES.map(tmpl => (
-          <button
-            key={tmpl.id}
-            onClick={() => startSession(tmpl)}
-            className={`w-full border ${border} p-4 text-left hover:border-[#C8FF00] transition-colors active:opacity-80`}
-          >
+          <button key={tmpl.id} onClick={() => startSession(tmpl)}
+            className="w-full p-4 text-left transition-colors active:opacity-70"
+            style={{ border: `1px solid ${theme.border}` }}>
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-[9px] tracking-widest text-gray-600 mb-0.5">{tmpl.tag}</p>
-                <p className="font-bold text-base mb-1">{tmpl.name}</p>
-                <p className="text-[10px] text-gray-600 truncate">
+                <p className="text-[9px] uppercase tracking-widest font-sans mb-1" style={{ color: theme.muted }}>{tmpl.tag}</p>
+                <p className="font-display text-xl font-semibold mb-1">{tmpl.name}</p>
+                <p className="text-xs font-sans truncate" style={{ color: theme.muted }}>
                   {tmpl.exercises.map(e => e.name.split(' ').slice(-1)[0]).join(' · ')}
                 </p>
               </div>
-              <span className="text-[#C8FF00] text-xl ml-3">→</span>
+              <span className="text-lg ml-3" style={{ color: theme.muted }}>→</span>
             </div>
           </button>
         ))}
       </div>
 
-      {/* Recent sessions */}
-      <p className="text-[9px] tracking-widest text-gray-600 mb-2">RECENT SESSIONS</p>
+      {/* Recent */}
+      <p className="text-[9px] uppercase tracking-widest font-sans mb-3" style={{ color: theme.muted }}>Recent sessions</p>
       {(() => {
         const recent = Object.entries(workoutLogs)
           .filter(([, l]) => l.completed)
           .sort((a, b) => b[0].localeCompare(a[0]))
           .slice(0, 7)
         if (!recent.length)
-          return <p className={`text-xs ${dm ? 'text-gray-700' : 'text-gray-400'} text-center py-4 tracking-widest`}>NO SESSIONS YET — START TRAINING</p>
+          return <p className="text-xs font-sans text-center py-4 uppercase tracking-widest" style={{ color: theme.muted }}>No sessions yet</p>
         return (
-          <div className="space-y-1">
+          <div>
             {recent.map(([date, log]) => (
-              <div key={date} className={`flex justify-between items-center py-2.5 border-b ${border} text-sm`}>
-                <span className="text-gray-500 text-xs">{date}</span>
-                <span className="text-[#C8FF00] text-xs tracking-widest">{log.templateName}</span>
+              <div key={date} className="flex justify-between items-center py-3 text-sm font-sans"
+                style={{ borderBottom: `1px solid ${theme.border}` }}>
+                <span style={{ color: theme.muted }}>{date}</span>
+                <span className="font-medium text-xs uppercase tracking-widest">{log.templateName}</span>
               </div>
             ))}
           </div>
@@ -160,89 +145,94 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog, dm }) {
   )
 }
 
-function ActiveSession({ template, exercises, onAddSet, onRemoveSet, onUpdateSet, onToggleDone, onComplete, onBack, dm }) {
+function ActiveSession({ template, exercises, onAddSet, onRemoveSet, onUpdateSet, onToggleDone, onComplete, onBack, theme }) {
   const totalSets = exercises.reduce((s, ex) => s + ex.sets.length, 0)
   const doneSets  = exercises.reduce((s, ex) => s + ex.sets.filter(s => s.done).length, 0)
   const pct       = totalSets > 0 ? (doneSets / totalSets) * 100 : 0
 
-  const border   = dm ? 'border-[#1E1E1E]' : 'border-gray-200'
-  const inputCls = `w-14 bg-transparent border ${dm ? 'border-[#2A2A2A]' : 'border-gray-300'} text-center text-sm p-1.5 outline-none focus:border-[#C8FF00] transition-colors`
+  const inputStyle = {
+    background: 'transparent',
+    border: `1px solid ${theme.border}`,
+    color: theme.text,
+    outline: 'none',
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: '13px',
+    textAlign: 'center',
+    padding: '6px',
+    width: '56px',
+  }
 
   return (
-    <div className="px-4 pt-6 pb-4">
+    <div className="px-5 pt-10 pb-6">
       <div className="flex items-end justify-between mb-2">
         <div>
-          <button onClick={onBack} className="text-[10px] text-gray-600 tracking-widest mb-1 block">← BACK</button>
-          <h1 className="text-3xl font-bold">{template.name}</h1>
-          <p className="text-[9px] text-gray-600 mt-0.5">{template.focus}</p>
+          <button onClick={onBack} className="text-[10px] uppercase tracking-widest font-sans mb-2 block"
+            style={{ color: theme.muted }}>← Back</button>
+          <h1 className="font-display text-4xl font-semibold leading-tight">{template.name}</h1>
+          <p className="text-xs font-sans mt-0.5" style={{ color: theme.muted }}>{template.focus}</p>
         </div>
         <div className="text-right">
-          <p className="text-[9px] tracking-widest text-gray-600">SETS</p>
-          <p className="text-3xl font-bold text-[#C8FF00]">{doneSets}<span className="text-gray-600 text-lg">/{totalSets}</span></p>
+          <p className="text-[9px] uppercase tracking-widest font-sans mb-1" style={{ color: theme.muted }}>Sets</p>
+          <p className="font-display text-3xl font-semibold leading-none">
+            {doneSets}<span style={{ color: theme.muted }} className="text-xl">/{totalSets}</span>
+          </p>
         </div>
       </div>
 
-      {/* Session progress bar */}
-      <div className={`h-[3px] ${dm ? 'bg-[#1C1C1C]' : 'bg-gray-200'} mb-6 overflow-hidden`}>
-        <div className="bar-fill h-full bg-[#C8FF00]" style={{ width: `${pct}%` }} />
+      {/* Progress line */}
+      <div className="h-px mb-8" style={{ background: theme.border }}>
+        <div className="bar-fill h-full" style={{ width: `${pct}%`, background: theme.ink }} />
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {exercises.map((ex, ei) => {
           const allDone = ex.sets.every(s => s.done)
           return (
-            <div key={ex.name} className={`border ${allDone ? 'border-[#C8FF00]/40' : border} p-4`}>
-              <div className="flex items-start justify-between mb-3">
+            <div key={ex.name} className="p-4"
+              style={{ border: `1px solid ${allDone ? theme.ink : theme.border}` }}>
+              <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="font-bold text-sm leading-tight">{ex.name}</p>
-                  <p className="text-[9px] text-gray-600 mt-0.5">{ex.muscle}</p>
+                  <p className="font-sans text-sm font-semibold">{ex.name}</p>
+                  <p className="text-[9px] uppercase tracking-widest font-sans mt-0.5" style={{ color: theme.muted }}>{ex.muscle}</p>
                 </div>
-                <button
-                  onClick={() => onAddSet(ei)}
-                  className={`text-[10px] border ${dm ? 'border-[#2A2A2A] text-gray-500 hover:border-[#C8FF00] hover:text-[#C8FF00]' : 'border-gray-300 text-gray-400 hover:border-[#C8FF00] hover:text-[#C8FF00]'} px-2 py-1 transition-colors flex-shrink-0 ml-2`}
-                >
-                  + SET
+                <button onClick={() => onAddSet(ei)}
+                  className="text-[10px] uppercase tracking-widest font-sans px-2 py-1 transition-opacity active:opacity-60 ml-2"
+                  style={{ border: `1px solid ${theme.border}`, color: theme.muted }}>
+                  + Set
                 </button>
               </div>
 
-              {/* Column headers */}
+              {/* Headers */}
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-7" />
-                <span className="text-[9px] text-gray-600 w-14 text-center">KG</span>
-                <span className="text-[9px] text-gray-600 w-3 text-center" />
-                <span className="text-[9px] text-gray-600 w-12 text-center">REPS</span>
-                <div className="flex-1" />
+                <div style={{ width: 28 }} />
+                <span className="text-[9px] uppercase tracking-widest font-sans text-center" style={{ width: 56, color: theme.muted }}>kg</span>
+                <span className="text-[9px] font-sans text-center px-1" style={{ color: theme.muted }}>×</span>
+                <span className="text-[9px] uppercase tracking-widest font-sans text-center" style={{ width: 56, color: theme.muted }}>reps</span>
               </div>
 
               <div className="space-y-2">
                 {ex.sets.map((set, si) => (
-                  <div key={si} className={`flex items-center gap-2 ${set.done ? 'opacity-40' : ''}`}>
-                    <button
-                      onClick={() => onToggleDone(ei, si)}
-                      className={`w-7 h-7 border flex-shrink-0 flex items-center justify-center text-xs transition-all
-                        ${set.done ? 'border-[#C8FF00] bg-[#C8FF00] text-black check-pop' : dm ? 'border-[#2A2A2A]' : 'border-gray-300'}`}
-                    >
-                      {set.done ? '✓' : <span className="text-gray-600 text-[10px]">{si + 1}</span>}
+                  <div key={si} className="flex items-center gap-2" style={{ opacity: set.done ? 0.35 : 1 }}>
+                    <button onClick={() => onToggleDone(ei, si)}
+                      className={`flex items-center justify-center text-xs transition-all flex-shrink-0 ${set.done ? 'check-pop' : ''}`}
+                      style={{
+                        width: 28, height: 28,
+                        border: `1px solid ${set.done ? theme.ink : theme.border}`,
+                        background: set.done ? theme.ink : 'transparent',
+                        color: set.done ? theme.surface : theme.muted,
+                        fontFamily: 'Inter',
+                      }}>
+                      {set.done ? '✓' : si + 1}
                     </button>
-                    <input
-                      value={set.weight}
-                      onChange={e => onUpdateSet(ei, si, 'weight', e.target.value)}
-                      className={inputCls}
-                      placeholder="—"
-                    />
-                    <span className="text-gray-600 text-xs">×</span>
-                    <input
-                      value={set.reps}
-                      onChange={e => onUpdateSet(ei, si, 'reps', e.target.value)}
-                      type="number"
-                      className={inputCls}
-                      placeholder="—"
-                    />
+                    <input value={set.weight} onChange={e => onUpdateSet(ei, si, 'weight', e.target.value)}
+                      style={inputStyle} placeholder="—" />
+                    <span className="text-xs font-sans" style={{ color: theme.muted }}>×</span>
+                    <input value={set.reps} onChange={e => onUpdateSet(ei, si, 'reps', e.target.value)}
+                      type="number" style={inputStyle} placeholder="—" />
                     {ex.sets.length > 1 && (
-                      <button
-                        onClick={() => onRemoveSet(ei, si)}
-                        className="text-[#2A2A2A] hover:text-[#FF5555] text-lg leading-none ml-auto transition-colors"
-                      >×</button>
+                      <button onClick={() => onRemoveSet(ei, si)}
+                        className="text-xl leading-none ml-auto transition-colors"
+                        style={{ color: theme.border }}>×</button>
                     )}
                   </div>
                 ))}
@@ -252,11 +242,10 @@ function ActiveSession({ template, exercises, onAddSet, onRemoveSet, onUpdateSet
         })}
       </div>
 
-      <button
-        onClick={onComplete}
-        className="w-full mt-6 py-4 bg-[#C8FF00] text-black font-bold tracking-widest text-sm active:opacity-80 transition-opacity"
-      >
-        COMPLETE SESSION ✓
+      <button onClick={onComplete}
+        className="w-full mt-8 py-4 text-sm uppercase tracking-[0.15em] font-sans font-medium transition-opacity active:opacity-70"
+        style={{ background: theme.ink, color: theme.surface }}>
+        Complete session ✓
       </button>
     </div>
   )

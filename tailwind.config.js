@@ -7,10 +7,18 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ['"Space Mono"', 'monospace'],
+        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans:    ['"Inter"', 'system-ui', 'sans-serif'],
       },
       colors: {
-        forge: '#C8FF00',
+        forge: {
+          bg:      '#FAFAF9',
+          surface: '#FFFFFF',
+          border:  '#E5E0DA',
+          text:    '#111111',
+          muted:   '#9A928A',
+          ink:     '#1a1a1a',
+        },
       },
     },
   },
