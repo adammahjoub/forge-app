@@ -44,7 +44,7 @@ export default function Settings({ settings, updateSettings, resetData }) {
   ]
 
   return (
-    <div style={{ padding: '24px 20px', maxWidth: 680, width: '100%' }} className="space-y-3">
+    <div className="page-container space-y-3">
 
       <div className="mb-6">
         <p className="text-[10px] tracking-[0.2em] mb-1" style={{ color: 'var(--muted)' }}>CONFIGURATION</p>

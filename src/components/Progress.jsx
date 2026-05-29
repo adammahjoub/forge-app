@@ -52,7 +52,7 @@ export default function Progress({ measurements, addMeasurement, settings }) {
   const inputStyle = { flex: 1, padding: '10px 12px', fontSize: '13px' }
 
   return (
-    <div style={{ padding: '24px 20px', maxWidth: 680, width: '100%' }} className="space-y-3">
+    <div className="page-container space-y-3">
 
       {/* Header */}
       <div className="flex items-end justify-between mb-6">

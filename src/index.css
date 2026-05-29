@@ -63,6 +63,32 @@ body {
   .main-content { margin-left: 200px; padding-bottom: 0; }
 }
 
+/* ─── Dashboard 2-col grid ───────────────────────────────────────── */
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+@media (min-width: 640px) {
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+
+/* ─── Page container ─────────────────────────────────────────────── */
+.page-container {
+  padding: 20px 16px;
+  width: 100%;
+}
+@media (min-width: 640px) {
+  .page-container {
+    padding: 28px 32px;
+    max-width: 800px;
+  }
+}
+
 /* ─── Section label ──────────────────────────────────────────────── */
 .section-label {
   font-size:      11px;

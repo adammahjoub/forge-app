@@ -61,7 +61,7 @@ export default function NutritionTracker({ settings, logs, updateTodayLog }) {
   const inputStyle = { width: '100%', padding: '10px 12px', fontSize: '13px' }
 
   return (
-    <div style={{ padding: '24px 20px', maxWidth: 680, width: '100%', position: 'relative' }} className="space-y-3">
+    <div className="page-container space-y-3" style={{ position: 'relative' }}>
 
       {/* Celebration */}
       {celebrate && (

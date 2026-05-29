@@ -64,7 +64,7 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog }) {
   const noHistory = Object.values(workoutLogs).filter(l => l.completed).length === 0
 
   return (
-    <div style={{ padding: '24px 20px', maxWidth: 680, width: '100%' }} className="space-y-3">
+    <div className="page-container space-y-3">
       <div className="mb-6">
         <p className="text-[10px] tracking-[0.2em] mb-1" style={{ color: 'var(--muted)' }}>4-DAY SPLIT</p>
         <h1 className="text-5xl font-bold tracking-tight" style={{ color: 'var(--strong)' }}>TRAINING</h1>
@@ -145,7 +145,7 @@ function ActiveSession({ template, exercises, onAddSet, onRemoveSet, onUpdateSet
   }
 
   return (
-    <div className="px-4 pt-8 pb-4 space-y-4">
+    <div className="page-container space-y-4">
       <div className="flex items-end justify-between mb-2">
         <div>
           <button onClick={onBack} className="text-[10px] tracking-widest mb-2 block"
