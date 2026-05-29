@@ -72,10 +72,10 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog }) {
 
       {/* Today status */}
       {todayWork.completed && (
-        <div className="card p-4 flex items-center justify-between" style={{ borderColor: 'rgba(167,139,250,0.3)' }}>
+        <div className="card p-4 flex items-center justify-between" style={{ borderColor: 'rgba(249,115,22,0.25)' }}>
           <div>
-            <p className="text-[9px] tracking-widest mb-0.5" style={{ color: 'var(--muted)' }}>COMPLETED TODAY</p>
-            <p className="font-bold gradient-text">{todayWork.templateName}</p>
+            <p className="text-[9px] tracking-widest mb-2" style={{ color: 'var(--muted)' }}>TODAY</p>
+            <span className="badge-high">✓ {todayWork.templateName}</span>
           </div>
           <span className="check-pop gradient-text text-xl">✓</span>
         </div>
@@ -83,8 +83,8 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog }) {
       {todayWork.templateId && !todayWork.completed && (
         <button onClick={resumeSession} className="w-full card p-4 text-left"
           style={{ borderColor: 'rgba(167,139,250,0.25)' }}>
-          <p className="text-[9px] tracking-widest mb-0.5 gradient-text">IN PROGRESS</p>
-          <p className="font-bold" style={{ color: 'var(--strong)' }}>{todayWork.templateName} — RESUME →</p>
+          <p className="text-[9px] tracking-widest mb-2" style={{ color: 'var(--muted)' }}>TODAY</p>
+          <span className="badge-medium">{todayWork.templateName} — RESUME →</span>
         </button>
       )}
 
@@ -96,7 +96,7 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog }) {
             className="w-full card p-4 text-left transition-all duration-200 hover:border-purple-400/30 active:opacity-70">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-[9px] tracking-widest mb-1 gradient-text">{tmpl.tag}</p>
+                <span className="badge-medium mb-2 inline-block">{tmpl.tag}</span>
                 <p className="font-bold text-base mb-1" style={{ color: 'var(--strong)' }}>{tmpl.name}</p>
                 <p className="text-[10px] truncate" style={{ color: 'var(--muted)' }}>
                   {tmpl.exercises.map(e => e.name.split(' ').slice(-1)[0]).join(' · ')}

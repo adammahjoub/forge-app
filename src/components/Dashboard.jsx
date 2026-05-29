@@ -32,7 +32,8 @@ function GradientRing({ value, max, size = 90, stroke = 6, label, sub }) {
           )}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-sm font-bold" style={{ color: 'var(--strong)' }}>{value}</span>
+          <span className={`text-sm font-bold ${pct > 0 ? 'gradient-text' : ''}`}
+            style={pct === 0 ? { color: 'var(--muted)' } : {}}>{value}</span>
           <span className="text-[9px]" style={{ color: 'var(--muted)' }}>/{max}</span>
         </div>
       </div>
@@ -117,14 +118,12 @@ export default function Dashboard({ settings, logs, workoutLogs, streak, daysOnP
       <div className="card p-4 flex items-center justify-between"
         style={todayWork.completed ? { borderColor: 'rgba(167,139,250,0.35)' } : {}}>
         <div>
-          <p className="text-[9px] tracking-widest mb-1" style={{ color: 'var(--muted)' }}>TODAY'S SESSION</p>
-          <p className="font-bold text-sm" style={{ color: todayWork.completed ? 'var(--strong)' : 'var(--text)' }}>
-            {todayWork.completed
-              ? `✓ ${todayWork.templateName}`
-              : todayWork.templateName
-              ? `${todayWork.templateName} — IN PROGRESS`
-              : 'NO SESSION STARTED'}
-          </p>
+          <p className="text-[9px] tracking-widest mb-2" style={{ color: 'var(--muted)' }}>TODAY'S SESSION</p>
+          {todayWork.completed
+            ? <span className="badge-high">✓ {todayWork.templateName}</span>
+            : todayWork.templateName
+            ? <span className="badge-medium">{todayWork.templateName} — IN PROGRESS</span>
+            : <span className="badge-low">NO SESSION STARTED</span>}
         </div>
         <div className={`text-2xl leading-none ${todayWork.completed ? 'check-pop gradient-text' : ''}`}
           style={!todayWork.completed ? { color: 'rgba(255,255,255,0.1)' } : {}}>

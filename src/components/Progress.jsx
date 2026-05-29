@@ -60,11 +60,7 @@ export default function Progress({ measurements, addMeasurement, settings }) {
           <p className="text-[10px] tracking-[0.2em] mb-1" style={{ color: 'var(--muted)' }}>BODY METRICS</p>
           <h1 className="text-5xl font-bold tracking-tight" style={{ color: 'var(--strong)' }}>PROGRESS</h1>
         </div>
-        {isMonday && (
-          <div className="px-2 py-1 text-[9px] tracking-widest gradient-text font-bold card-sm">
-            CHECK-IN
-          </div>
-        )}
+        {isMonday && <span className="badge-medium self-end mb-1">CHECK-IN</span>}
       </div>
 
       {/* Monday prompt */}
@@ -83,13 +79,14 @@ export default function Progress({ measurements, addMeasurement, settings }) {
         <>
           <div className="grid grid-cols-3 gap-2">
             {[
-              ['WEIGHT Δ', `${sign(delta.dw)} kg`],
-              ['WAIST Δ',  `${sign(delta.dWs)} cm`],
-              ['EST BF Δ', `${sign(delta.dBF)} %`],
-            ].map(([lbl, val]) => (
+              ['WEIGHT Δ', `${sign(delta.dw)} kg`,  parseFloat(delta.dw)  < 0],
+              ['WAIST Δ',  `${sign(delta.dWs)} cm`, parseFloat(delta.dWs) < 0],
+              ['EST BF Δ', `${sign(delta.dBF)} %`,  parseFloat(delta.dBF) < 0],
+            ].map(([lbl, val, good]) => (
               <div key={lbl} className="card py-3 px-2 text-center">
                 <p className="text-[9px] tracking-widest mb-1" style={{ color: 'var(--muted)' }}>{lbl}</p>
-                <p className="text-sm font-bold" style={{ color: 'var(--strong)' }}>{val}</p>
+                <p className={`text-sm font-bold ${good ? 'gradient-text' : ''}`}
+                  style={!good ? { color: 'var(--strong)' } : {}}>{val}</p>
               </div>
             ))}
           </div>

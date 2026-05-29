@@ -88,10 +88,13 @@ export default function NutritionTracker({ settings, logs, updateTodayLog }) {
         ].map(({ label, value, rem, unit, pct }) => (
           <div key={label} className="card p-4">
             <p className="text-[9px] tracking-widest mb-2" style={{ color: 'var(--muted)' }}>{label}</p>
-            <p className="text-3xl font-bold leading-none mb-1" style={{ color: 'var(--strong)' }}>{value}</p>
-            <p className="text-[10px]" style={{ color: pct > 1.05 ? '#f97316' : pct >= 0.9 ? 'rgba(167,139,250,0.9)' : 'var(--muted)' }}>
-              {rem > 0 ? `${rem} ${unit} LEFT` : rem === 0 ? 'GOAL HIT ✓' : `${Math.abs(rem)} ${unit} OVER`}
-            </p>
+            <p className={`text-3xl font-bold leading-none mb-2 ${pct >= 0.9 ? 'gradient-text' : ''}`}
+              style={pct < 0.9 ? { color: 'var(--strong)' } : {}}>{value}</p>
+            {rem > 0
+              ? <span className="badge-medium">{rem} {unit} LEFT</span>
+              : rem === 0
+              ? <span className="badge-high">GOAL HIT ✓</span>
+              : <span className="badge-high">{Math.abs(rem)} {unit} OVER</span>}
           </div>
         ))}
       </div>

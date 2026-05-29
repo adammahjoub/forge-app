@@ -59,15 +59,16 @@ body {
 
 /* ─── Primary button ─────────────────────────────────────────────── */
 .btn-primary {
-  background:    var(--gradient);
+  background:    linear-gradient(135deg, #a78bfa, #f97316);
   color:         #FFFFFF;
   border:        none;
-  border-radius: var(--radius-sm);
-  transition:    opacity 200ms ease, transform 220ms ease, box-shadow 220ms ease;
+  border-radius: 8px;
+  padding:       7px 14px;
+  transition:    opacity 150ms ease, transform 150ms ease, box-shadow 150ms ease;
   font-family:   'Space Mono', monospace;
 }
-.btn-primary:hover  { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(167,139,250,0.25); }
-.btn-primary:active { opacity: 0.75; transform: translateY(0); }
+.btn-primary:hover  { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(167,139,250,0.2); }
+.btn-primary:active { opacity: 0.75; transform: translateY(0); box-shadow: none; }
 
 /* ─── Ghost button ───────────────────────────────────────────────── */
 .btn-ghost {
@@ -104,19 +105,51 @@ input[type='number'] { -moz-appearance: textfield; }
 
 /* ─── Progress bar ───────────────────────────────────────────────── */
 .bar-track {
-  background:    rgba(255,255,255,0.06);
+  background:    rgba(255,255,255,0.07);
   border-radius: 99px;
   overflow:      hidden;
 }
 .bar-fill {
-  background:    var(--gradient);
+  background:    linear-gradient(90deg, #a78bfa, #f97316);
   border-radius: 99px;
   transition:    width 0.65s cubic-bezier(0.4,0,0.2,1);
 }
 .bar-fill-over {
-  background: rgba(249,115,22,0.85);
+  background:    linear-gradient(90deg, #f97316, #fb923c);
   border-radius: 99px;
-  transition: width 0.65s cubic-bezier(0.4,0,0.2,1);
+  transition:    width 0.65s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ─── Badges ─────────────────────────────────────────────────────── */
+.badge-high {
+  background:    rgba(249,115,22,0.15);
+  color:         #fb923c;
+  border:        0.5px solid rgba(249,115,22,0.25);
+  border-radius: 6px;
+  font-size:     10px;
+  padding:       2px 8px;
+  font-family:   'Space Mono', monospace;
+  letter-spacing: 0.08em;
+}
+.badge-medium {
+  background:    rgba(167,139,250,0.15);
+  color:         #a78bfa;
+  border:        0.5px solid rgba(167,139,250,0.25);
+  border-radius: 6px;
+  font-size:     10px;
+  padding:       2px 8px;
+  font-family:   'Space Mono', monospace;
+  letter-spacing: 0.08em;
+}
+.badge-low {
+  background:    rgba(255,255,255,0.07);
+  color:         rgba(255,255,255,0.4);
+  border:        0.5px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  font-size:     10px;
+  padding:       2px 8px;
+  font-family:   'Space Mono', monospace;
+  letter-spacing: 0.08em;
 }
 
 /* ─── SVG ring ───────────────────────────────────────────────────── */
