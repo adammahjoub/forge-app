@@ -87,7 +87,7 @@ export default function Dashboard({ settings, logs, workoutLogs, streak, daysOnP
   const nextSession  = !todayWorkout?.templateId
 
   return (
-    <div style={{ padding: '28px 20px', maxWidth: 600 }}>
+    <div style={{ padding: '24px 20px', maxWidth: 680, width: '100%' }}>
 
       {/* ── Header: greeting + CTA ───────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>

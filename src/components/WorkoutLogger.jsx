@@ -64,7 +64,7 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog }) {
   const noHistory = Object.values(workoutLogs).filter(l => l.completed).length === 0
 
   return (
-    <div className="px-4 pt-8 pb-4 space-y-3">
+    <div style={{ padding: '24px 20px', maxWidth: 680, width: '100%' }} className="space-y-3">
       <div className="mb-6">
         <p className="text-[10px] tracking-[0.2em] mb-1" style={{ color: 'var(--muted)' }}>4-DAY SPLIT</p>
         <h1 className="text-5xl font-bold tracking-tight" style={{ color: 'var(--strong)' }}>TRAINING</h1>

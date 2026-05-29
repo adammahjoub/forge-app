@@ -184,6 +184,44 @@ export default function App() {
           {activeTab === 'settings'  && <Settings {...shared} />}
         </div>
       </main>
+
+      {/* ── Mobile bottom nav (hidden on desktop via CSS) ─────────── */}
+      <nav className="bottom-nav" style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40,
+        background: 'rgba(255,255,255,0.03)',
+        borderTop: '0.5px solid rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+      }}>
+        {TABS.map(t => {
+          const active = activeTab === t.id
+          return (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              style={{
+                flex: 1, padding: '10px 0',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                background: active ? 'rgba(167,139,250,0.12)' : 'transparent',
+                border: 'none', cursor: 'pointer',
+                transition: 'background 150ms ease',
+              }}>
+              <span style={{
+                fontSize: 15, lineHeight: 1,
+                ...(active ? {
+                  background: 'linear-gradient(135deg,#a78bfa,#f97316)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                } : { color: 'rgba(255,255,255,0.45)' }),
+              }}>{t.icon}</span>
+              <span style={{
+                fontSize: 9, letterSpacing: '0.08em',
+                fontFamily: 'Inter, sans-serif',
+                color: active ? '#FFFFFF' : 'rgba(255,255,255,0.45)',
+                transition: 'color 150ms ease',
+              }}>{t.label}</span>
+            </button>
+          )
+        })}
+      </nav>
     </div>
   )
 }
