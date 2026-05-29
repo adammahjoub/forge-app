@@ -7,16 +7,15 @@ function getGreeting() {
   return 'Bonsoir'
 }
 
-function GradientRing({ value, max, size = 72, stroke = 5, label }) {
+function GradientRing({ value, max, size = 80, stroke = 6, label }) {
   const r    = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const pct  = Math.min(value / max, 1)
   const gap  = circ * (1 - pct)
   const uid  = label.replace(/\s/g, '')
-  const pctNum = Math.round(pct * 100)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
       <div style={{ position: 'relative', width: size, height: size }}>
         <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
           <defs>
@@ -34,12 +33,12 @@ function GradientRing({ value, max, size = 72, stroke = 5, label }) {
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <span className="font-mono" style={{
-            fontSize: 13, fontWeight: 700,
+            fontSize: 15, fontWeight: 700,
             background: pct > 0 ? 'linear-gradient(135deg,#a78bfa,#f97316)' : 'none',
             WebkitBackgroundClip: pct > 0 ? 'text' : 'unset',
             WebkitTextFillColor: pct > 0 ? 'transparent' : 'var(--muted)',
             color: pct === 0 ? 'var(--muted)' : undefined,
-          }}>{pctNum}%</span>
+          }}>{Math.round(pct * 100)}%</span>
         </div>
       </div>
       <p className="section-label">{label}</p>
@@ -52,13 +51,13 @@ function Bar({ label, value, max }) {
   const over = value > max
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 5, color: 'var(--muted)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 7, color: 'var(--muted)' }}>
         <span>{label}</span>
-        <span className="font-mono" style={{ color: over ? '#f97316' : 'var(--text)', fontSize: 11 }}>
+        <span className="font-mono" style={{ color: over ? '#f97316' : 'var(--text)', fontSize: 12 }}>
           {value}<span style={{ color: 'var(--muted)' }}>/{max}</span>
         </span>
       </div>
-      <div className="bar-track" style={{ height: 3 }}>
+      <div className="bar-track" style={{ height: 4 }}>
         <div className={over ? 'bar-fill-over' : 'bar-fill'} style={{ width: `${pct}%`, height: '100%' }} />
       </div>
     </div>
@@ -84,80 +83,91 @@ export default function Dashboard({ settings, logs, workoutLogs, streak, daysOnP
   const nextSession = !todayWork?.templateId
 
   return (
-    <div style={{ padding: '20px 16px', height: '100%', boxSizing: 'border-box' }}>
+    <div style={{
+      padding: '20px 16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12,
+      minHeight: 'calc(100vh - 68px)', // mobile: minus bottom nav
+    }}>
 
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      {/* ── Greeting ─────────────────────────────────────────────── */}
+      <div className="card" style={{ padding: '22px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 2 }}>{getGreeting()},</p>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--strong)', margin: 0, lineHeight: 1.2 }}>
+          <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 4 }}>{getGreeting()},</p>
+          <h1 style={{ fontSize: 36, fontWeight: 700, color: 'var(--strong)', margin: 0, lineHeight: 1.1 }}>
             Adam 👋
           </h1>
+          <p style={{ fontSize: 12, color: 'var(--muted-dim)', marginTop: 6 }}>
+            Jour <span className="gradient-text font-mono" style={{ fontSize: 14, fontWeight: 700 }}>{daysOnProgram}</span> du programme
+          </p>
         </div>
         <button onClick={() => onNavigate(nextSession ? 'workout' : 'nutrition')}
-          className="btn-primary" style={{ fontSize: 12 }}>
+          className="btn-primary" style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}>
           {nextSession ? '+ Session' : '+ Repas'}
         </button>
       </div>
 
-      {/* ── Stat strip ──────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
+      {/* ── Stats 3-col ──────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
         {[
           { label: 'Poids',   value: `${settings.weight}`, unit: 'kg', grad: false },
-          { label: 'BF est.', value: `~${settings.bodyFat}`, unit: '%',  grad: false },
-          { label: 'Streak',  value: String(streak),          unit: 'd',  grad: true  },
+          { label: 'BF est.', value: `~${settings.bodyFat}`, unit: '%', grad: false },
+          { label: 'Streak',  value: String(streak),          unit: 'd', grad: true  },
         ].map(({ label, value, unit, grad }) => (
-          <div key={label} className="card" style={{ padding: '10px 8px', textAlign: 'center' }}>
-            <p className="section-label" style={{ marginBottom: 4, fontSize: 10 }}>{label}</p>
+          <div key={label} className="card" style={{ padding: '14px 8px', textAlign: 'center' }}>
+            <p className="section-label" style={{ marginBottom: 6, fontSize: 10 }}>{label}</p>
             <p className={`font-mono ${grad && streak > 0 ? 'gradient-text streak-pulse' : ''}`}
-              style={{ fontSize: 18, fontWeight: 600, margin: 0, color: (!grad || streak === 0) ? 'var(--strong)' : undefined }}>
-              {value}<span style={{ fontSize: 10, color: 'var(--muted)' }}>{unit}</span>
+              style={{ fontSize: 22, fontWeight: 600, margin: 0, color: (!grad || streak === 0) ? 'var(--strong)' : undefined }}>
+              {value}<span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>{unit}</span>
             </p>
           </div>
         ))}
       </div>
 
-      {/* ── Main grid: left col + right col on desktop ───────────
-           On mobile this renders as a single column via CSS       */}
-      <div className="dashboard-grid">
+      {/* ── Session status ───────────────────────────────────────── */}
+      <div className="card" style={{
+        padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        ...(todayWork.completed ? { borderColor: 'rgba(167,139,250,0.35)' } : {}),
+      }}>
+        <div>
+          <p className="section-label" style={{ marginBottom: 8, fontSize: 10 }}>Séance du jour</p>
+          {todayWork.completed
+            ? <span className="badge-high">✓ {todayWork.templateName}</span>
+            : todayWork.templateName
+            ? <span className="badge-medium">{todayWork.templateName} — en cours</span>
+            : <span className="badge-low">Aucune séance démarrée</span>}
+        </div>
+        <span className={`font-mono ${todayWork.completed ? 'check-pop gradient-text' : ''}`}
+          style={{ fontSize: 22, color: todayWork.completed ? undefined : 'rgba(255,255,255,0.08)' }}>
+          {todayWork.completed ? '✓' : '○'}
+        </span>
+      </div>
 
-        {/* Left column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* ── Bottom 2-col: Today bars + Weekly rings ──────────────── */}
+      <div className="dashboard-grid" style={{ flex: 1 }}>
 
-          {/* Session status */}
-          <div className="card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            ...(todayWork.completed ? { borderColor: 'rgba(167,139,250,0.35)' } : {}) }}>
-            <div>
-              <p className="section-label" style={{ marginBottom: 5, fontSize: 10 }}>Séance du jour</p>
-              {todayWork.completed
-                ? <span className="badge-high">✓ {todayWork.templateName}</span>
-                : todayWork.templateName
-                ? <span className="badge-medium">{todayWork.templateName} — en cours</span>
-                : <span className="badge-low">Aucune séance</span>}
-            </div>
-            <span className={`font-mono ${todayWork.completed ? 'check-pop gradient-text' : ''}`}
-              style={{ fontSize: 18, color: todayWork.completed ? undefined : 'rgba(255,255,255,0.08)' }}>
-              {todayWork.completed ? '✓' : '○'}
-            </span>
-          </div>
-
-          {/* Today bars */}
-          <div className="card" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <p className="section-label" style={{ fontSize: 10 }}>Aujourd'hui</p>
-            <Bar label="Calories" value={todayLog.calories || 0} max={settings.calories} />
-            <Bar label="Protéines" value={todayLog.protein || 0} max={settings.protein} />
-          </div>
+        {/* Today nutrition */}
+        <div className="card" style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14, justifyContent: 'center' }}>
+          <p className="section-label" style={{ fontSize: 10 }}>Aujourd'hui</p>
+          <Bar label="Calories"  value={todayLog.calories || 0} max={settings.calories} />
+          <Bar label="Protéines" value={todayLog.protein  || 0} max={settings.protein}  />
+          {todayLog.meals?.length > 0 && (
+            <p style={{ fontSize: 11, color: 'var(--muted-dim)', margin: 0 }}>
+              {todayLog.meals.length} repas enregistré{todayLog.meals.length > 1 ? 's' : ''}
+            </p>
+          )}
         </div>
 
-        {/* Right column — weekly rings */}
-        <div className="card" style={{ padding: '14px', display: 'flex', flexDirection: 'column' }}>
+        {/* Weekly rings */}
+        <div className="card" style={{ padding: '16px 14px', display: 'flex', flexDirection: 'column' }}>
           <p className="section-label" style={{ marginBottom: 12, fontSize: 10 }}>Cette semaine</p>
           <div style={{ display: 'flex', justifyContent: 'space-around', flex: 1, alignItems: 'center' }}>
             <GradientRing value={weeklyTotals.cal}  max={settings.calories * 7} label="Calories" />
             <GradientRing value={weeklyTotals.prot} max={settings.protein  * 7} label="Protéines" />
           </div>
-          <p style={{ textAlign: 'center', fontSize: 10, color: 'var(--muted-dim)', marginTop: 8 }}>
-            {weeklyTotals.days} jour{weeklyTotals.days > 1 ? 's' : ''} sur 7
+          <p style={{ textAlign: 'center', fontSize: 10, color: 'var(--muted-dim)', marginTop: 10 }}>
+            {weeklyTotals.days} / 7 jours
           </p>
         </div>
 
