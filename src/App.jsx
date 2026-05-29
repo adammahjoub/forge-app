@@ -8,13 +8,10 @@ import Settings from './components/Settings'
 const SETTINGS_VERSION = 3
 
 const DEFAULT_SETTINGS = {
-  calories: 2400,
-  protein: 190,
-  targetWeight: 78,
+  calories: 2400, protein: 190, targetWeight: 78,
   darkMode: true,
   startDate: new Date().toISOString().split('T')[0],
-  weight: 82,
-  bodyFat: 20,
+  weight: 82, bodyFat: 20,
   _v: SETTINGS_VERSION,
 }
 
@@ -31,6 +28,14 @@ function loadSettings() {
     return s
   } catch { return DEFAULT_SETTINGS }
 }
+
+const TABS = [
+  { id: 'dashboard', icon: '⌂', label: 'Home'     },
+  { id: 'workout',   icon: '◈', label: 'Train'    },
+  { id: 'nutrition', icon: '◉', label: 'Eat'      },
+  { id: 'progress',  icon: '◷', label: 'Progress' },
+  { id: 'settings',  icon: '◎', label: 'Settings' },
+]
 
 export default function App() {
   const [activeTab, setActiveTab]       = useState('dashboard')
@@ -66,13 +71,11 @@ export default function App() {
   }, [])
 
   const streak = (() => {
-    let count = 0
-    const d = new Date()
+    let count = 0; const d = new Date()
     if (!workoutLogs[todayStr()]?.completed) d.setDate(d.getDate() - 1)
     while (true) {
       const ds = d.toISOString().split('T')[0]
-      if (workoutLogs[ds]?.completed) { count++; d.setDate(d.getDate() - 1) }
-      else break
+      if (workoutLogs[ds]?.completed) { count++; d.setDate(d.getDate() - 1) } else break
     }
     return count
   })()
@@ -82,14 +85,11 @@ export default function App() {
   )
 
   const weeklyProteinDays = (() => {
-    const now = new Date()
-    const dow = (now.getDay() + 6) % 7
-    const lastMon = new Date(now)
-    lastMon.setDate(now.getDate() - dow - 7)
+    const now = new Date(), dow = (now.getDay() + 6) % 7
+    const lastMon = new Date(now); lastMon.setDate(now.getDate() - dow - 7)
     let days = 0
     for (let i = 0; i < 7; i++) {
-      const d = new Date(lastMon)
-      d.setDate(lastMon.getDate() + i)
+      const d = new Date(lastMon); d.setDate(lastMon.getDate() + i)
       if ((logs[d.toISOString().split('T')[0]]?.protein || 0) >= settings.protein) days++
     }
     return days
@@ -98,93 +98,92 @@ export default function App() {
   const shared = {
     settings, logs, workoutLogs, measurements,
     updateSettings, updateTodayLog, updateWorkoutLog, addMeasurement, resetData,
-    streak, daysOnProgram,
+    streak, daysOnProgram, onNavigate: setActiveTab,
   }
 
-  const TABS = [
-    { id: 'dashboard', icon: '⌂', label: 'HOME'  },
-    { id: 'workout',   icon: '◈', label: 'TRAIN' },
-    { id: 'nutrition', icon: '◉', label: 'EAT'   },
-    { id: 'progress',  icon: '◷', label: 'TRACK' },
-    { id: 'settings',  icon: '◎', label: 'SET'   },
-  ]
-
   return (
-    <div className="min-h-screen select-none" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
 
-      {/* Weekly modal */}
-      {weeklyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6"
-          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
-          <div className="modal-panel w-full max-w-sm p-6" style={{
-            background: 'rgba(255,255,255,0.06)',
-            border: '0.5px solid rgba(255,255,255,0.12)',
-            borderRadius: '16px',
-          }}>
-            <div className="text-xs tracking-widest mb-1 gradient-text" style={{ fontWeight: 700 }}>WEEKLY DEBRIEF</div>
-            <div className="text-2xl font-bold mb-5" style={{ color: 'var(--strong)' }}>LAST WEEK</div>
-            <div className="flex justify-between items-center mb-4 pb-4"
-              style={{ borderBottom: '0.5px solid var(--border)' }}>
-              <span className="text-xs" style={{ color: 'var(--muted)' }}>PROTEIN GOAL HIT</span>
-              <span className="font-bold text-lg gradient-text">{weeklyProteinDays}<span className="text-sm" style={{ color: 'var(--muted)' }}>/7</span></span>
-            </div>
-            <p className="text-xs mb-5" style={{ color: 'var(--muted)' }}>
-              {weeklyProteinDays >= 5 ? 'SOLID WEEK. KEEP STACKING.' : weeklyProteinDays >= 3 ? 'DECENT. HIT PROTEIN MORE CONSISTENTLY.' : 'PROTEIN WAS THE WEAK LINK THIS WEEK.'}
-            </p>
-            <button onClick={() => setWeeklyModal(false)}
-              className="w-full py-3 text-xs tracking-widest font-bold btn-primary">
-              LET'S GO →
-            </button>
-          </div>
+      {/* ── Sidebar ─────────────────────────────────────────────────── */}
+      <aside className="sidebar">
+        {/* Logo */}
+        <div style={{ padding: '24px 16px 20px', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
+          <span className="gradient-text font-mono" style={{ fontSize: 18, fontWeight: 700, letterSpacing: 1 }}>
+            FORGE
+          </span>
         </div>
-      )}
 
-      {/* Pages */}
-      <div key={activeTab} className="pb-20 min-h-screen overflow-y-auto page-fade">
-        {activeTab === 'dashboard' && <Dashboard {...shared} />}
-        {activeTab === 'workout'   && <WorkoutLogger {...shared} />}
-        {activeTab === 'nutrition' && <NutritionTracker {...shared} />}
-        {activeTab === 'progress'  && <Progress {...shared} />}
-        {activeTab === 'settings'  && <Settings {...shared} />}
-      </div>
-
-      {/* Bottom nav — glass sidebar style adapted to mobile bottom bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40" style={{
-        background: 'rgba(255,255,255,0.03)',
-        borderTop: '0.5px solid rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-      }}>
-        <div className="flex">
+        {/* Nav items */}
+        <nav style={{ flex: 1, paddingTop: 8 }}>
           {TABS.map(t => {
             const active = activeTab === t.id
             return (
               <button key={t.id} onClick={() => setActiveTab(t.id)}
-                className="flex-1 py-3 flex flex-col items-center gap-1"
                 style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 16px',
                   background: active ? 'rgba(167,139,250,0.12)' : 'transparent',
-                  transition: 'background 150ms ease, color 150ms ease',
-                }}>
-                <span className="text-base leading-none" style={active ? {
-                  background: 'var(--gradient)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                } : {
-                  color: 'rgba(255,255,255,0.45)',
-                  transition: 'color 150ms ease',
-                }}>{t.icon}</span>
-                <span style={{
-                  fontSize: '9px',
-                  letterSpacing: '0.1em',
+                  border: 'none', cursor: 'pointer',
                   color: active ? '#FFFFFF' : 'rgba(255,255,255,0.45)',
-                  transition: 'color 150ms ease',
-                  fontFamily: 'Space Mono, monospace',
-                }}>{t.label}</span>
+                  fontSize: 13, fontFamily: 'Inter, sans-serif',
+                  transition: 'background 150ms ease, color 150ms ease',
+                  textAlign: 'left',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.75)' }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.45)' }}
+              >
+                <span style={{ fontSize: 14, flexShrink: 0 }}>{t.icon}</span>
+                <span className="sidebar-label">{t.label}</span>
               </button>
             )
           })}
+        </nav>
+
+        {/* Bottom version */}
+        <div className="sidebar-label" style={{ padding: '12px 16px', borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', fontFamily: 'Space Mono', letterSpacing: 1 }}>v1.0 · FORGE</p>
         </div>
-      </nav>
+      </aside>
+
+      {/* ── Main content ────────────────────────────────────────────── */}
+      <main className="main-content" style={{ flex: 1, minHeight: '100vh', paddingBottom: 0 }}>
+        {/* Weekly modal */}
+        {weeklyModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
+            <div className="modal-panel w-full max-w-sm p-6" style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '0.5px solid rgba(255,255,255,0.12)',
+              borderRadius: 16,
+            }}>
+              <div className="section-label mb-1">Weekly Debrief</div>
+              <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--strong)', marginBottom: 20 }}>Last week</div>
+              <div className="flex justify-between items-center pb-4 mb-4"
+                style={{ borderBottom: '0.5px solid var(--border)' }}>
+                <span style={{ fontSize: 13, color: 'var(--muted)' }}>Protein goal hit</span>
+                <span className="font-mono gradient-text" style={{ fontWeight: 700, fontSize: 18 }}>
+                  {weeklyProteinDays}<span style={{ color: 'var(--muted)', fontSize: 13 }}>/7</span>
+                </span>
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
+                {weeklyProteinDays >= 5 ? 'Solid week. Keep stacking.' : weeklyProteinDays >= 3 ? 'Decent. Hit protein more consistently.' : 'Protein was the weak link this week.'}
+              </p>
+              <button onClick={() => setWeeklyModal(false)} className="w-full btn-primary" style={{ padding: '11px 14px', fontSize: 13 }}>
+                Let's go →
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div key={activeTab} className="page-fade">
+          {activeTab === 'dashboard' && <Dashboard {...shared} />}
+          {activeTab === 'workout'   && <WorkoutLogger {...shared} />}
+          {activeTab === 'nutrition' && <NutritionTracker {...shared} />}
+          {activeTab === 'progress'  && <Progress {...shared} />}
+          {activeTab === 'settings'  && <Settings {...shared} />}
+        </div>
+      </main>
     </div>
   )
 }

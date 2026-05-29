@@ -1,6 +1,13 @@
 const todayStr = () => new Date().toISOString().split('T')[0]
 
-function GradientRing({ value, max, size = 90, stroke = 6, label, sub }) {
+function greeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 18) return 'Good afternoon'
+  return 'Good evening'
+}
+
+function GradientRing({ value, max, size = 84, stroke = 6, label, sub }) {
   const r    = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const pct  = Math.min(value / max, 1)
@@ -8,8 +15,8 @@ function GradientRing({ value, max, size = 90, stroke = 6, label, sub }) {
   const uid  = label.replace(/\s/g, '')
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative" style={{ width: size, height: size }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
         <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
           <defs>
             <linearGradient id={`rg-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -17,64 +24,58 @@ function GradientRing({ value, max, size = 90, stroke = 6, label, sub }) {
               <stop offset="100%" stopColor="#f97316" />
             </linearGradient>
           </defs>
-          {/* Track */}
-          <circle cx={size/2} cy={size/2} r={r} fill="none"
-            stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
-          {/* Fill */}
+          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
           {pct > 0 && (
             <circle cx={size/2} cy={size/2} r={r} fill="none"
-              stroke={`url(#rg-${uid})`}
-              strokeWidth={stroke}
-              strokeLinecap="round"
-              strokeDasharray={circ}
-              strokeDashoffset={gap}
-            />
+              stroke={`url(#rg-${uid})`} strokeWidth={stroke}
+              strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={gap} />
           )}
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-sm font-bold ${pct > 0 ? 'gradient-text' : ''}`}
-            style={pct === 0 ? { color: 'var(--muted)' } : {}}>{value}</span>
-          <span className="text-[9px]" style={{ color: 'var(--muted)' }}>/{max}</span>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <span className="font-mono" style={{ fontSize: 14, fontWeight: 700, color: pct > 0 ? 'transparent' : 'var(--muted)',
+            background: pct > 0 ? 'linear-gradient(135deg,#a78bfa,#f97316)' : 'none',
+            WebkitBackgroundClip: pct > 0 ? 'text' : 'unset',
+            WebkitTextFillColor: pct > 0 ? 'transparent' : 'var(--muted)',
+          }}>{value}</span>
+          <span style={{ fontSize: 9, color: 'var(--muted)' }}>/{max}</span>
         </div>
       </div>
-      <div className="text-center">
-        <p className="text-[9px] tracking-widest" style={{ color: 'var(--muted)' }}>{label}</p>
-        {sub && <p className="text-[9px]" style={{ color: 'var(--muted-dim)' }}>{sub}</p>}
+      <div style={{ textAlign: 'center' }}>
+        <p className="section-label">{label}</p>
+        {sub && <p style={{ fontSize: 9, color: 'var(--muted-dim)' }}>{sub}</p>}
       </div>
     </div>
   )
 }
 
 function Bar({ label, value, max }) {
-  const pct  = Math.min((value / max) * 100, 100)
+  const pct = Math.min((value / max) * 100, 100)
   const over = value > max
   return (
     <div>
-      <div className="flex justify-between text-[10px] mb-1.5">
-        <span style={{ color: 'var(--muted)' }}>{label}</span>
-        <span style={{ color: over ? '#f97316' : 'var(--text)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6, color: 'var(--muted)' }}>
+        <span>{label}</span>
+        <span className="font-mono" style={{ color: over ? '#f97316' : 'var(--text)' }}>
           {value} <span style={{ color: 'var(--muted)' }}>/ {max}</span>
         </span>
       </div>
-      <div className="h-1 bar-track">
+      <div className="bar-track" style={{ height: 4 }}>
         <div className={over ? 'bar-fill-over' : 'bar-fill'} style={{ width: `${pct}%`, height: '100%' }} />
       </div>
     </div>
   )
 }
 
-export default function Dashboard({ settings, logs, workoutLogs, streak, daysOnProgram }) {
+export default function Dashboard({ settings, logs, workoutLogs, streak, daysOnProgram, onNavigate }) {
   const today     = todayStr()
   const todayLog  = logs[today] || {}
   const todayWork = workoutLogs[today] || {}
 
   const weeklyTotals = (() => {
-    const now = new Date()
-    const dow = (now.getDay() + 6) % 7
+    const now = new Date(), dow = (now.getDay() + 6) % 7
     let cal = 0, prot = 0
     for (let i = 0; i <= dow; i++) {
-      const d = new Date(now)
-      d.setDate(now.getDate() - dow + i)
+      const d = new Date(now); d.setDate(now.getDate() - dow + i)
       const ds = d.toISOString().split('T')[0]
       cal  += logs[ds]?.calories || 0
       prot += logs[ds]?.protein  || 0
@@ -82,72 +83,79 @@ export default function Dashboard({ settings, logs, workoutLogs, streak, daysOnP
     return { cal: Math.round(cal), prot: Math.round(prot), days: dow + 1 }
   })()
 
-  return (
-    <div className="px-4 pt-8 pb-4 space-y-3">
+  const todayWorkout = workoutLogs[today]
+  const nextSession  = !todayWorkout?.templateId
 
-      {/* Header */}
-      <div className="flex items-end justify-between mb-6">
+  return (
+    <div style={{ padding: '28px 20px', maxWidth: 600 }}>
+
+      {/* ── Header: greeting + CTA ───────────────────────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <p className="text-[10px] tracking-[0.2em] mb-1" style={{ color: 'var(--muted)' }}>PROGRAM ACTIVE</p>
-          <h1 className="text-5xl font-bold tracking-tight gradient-text">FORGE</h1>
+          <p className="section-label" style={{ marginBottom: 4 }}>{greeting()}</p>
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--strong)', margin: 0 }}>
+            Day <span className="gradient-text font-mono">{daysOnProgram}</span>
+          </h1>
         </div>
-        <div className="text-right">
-          <p className="text-[9px] tracking-widest mb-1" style={{ color: 'var(--muted)' }}>DAY</p>
-          <p className="text-5xl font-bold gradient-text leading-none">{daysOnProgram}</p>
-        </div>
+        <button
+          onClick={() => onNavigate(nextSession ? 'workout' : 'nutrition')}
+          className="btn-primary"
+          style={{ fontSize: 13, whiteSpace: 'nowrap' }}>
+          {nextSession ? '+ Start session' : '+ Log meal'}
+        </button>
       </div>
 
-      {/* Stat strip */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* ── Stat grid (3 cards) ──────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 24 }}>
         {[
-          { label: 'WEIGHT',  value: settings.weight,  unit: 'kg', accent: false },
-          { label: 'EST BF%', value: `~${settings.bodyFat}`, unit: '%', accent: false },
-          { label: 'STREAK',  value: streak, unit: 'd', accent: true },
+          { label: 'Weight',  value: `${settings.weight}`, unit: 'kg', accent: false },
+          { label: 'Est. BF', value: `~${settings.bodyFat}`, unit: '%', accent: false },
+          { label: 'Streak',  value: String(streak), unit: 'd', accent: true },
         ].map(({ label, value, unit, accent }) => (
-          <div key={label} className="card py-3 px-2 text-center">
-            <p className="text-[9px] tracking-widest mb-1" style={{ color: 'var(--muted)' }}>{label}</p>
-            <p className={`text-lg font-bold leading-none ${accent && streak > 0 ? 'gradient-text streak-pulse' : ''}`}
+          <div key={label} className="card" style={{ padding: '14px 12px', textAlign: 'center' }}>
+            <p className="section-label" style={{ marginBottom: 6 }}>{label}</p>
+            <p className={`stat-value font-mono ${accent && streak > 0 ? 'gradient-text streak-pulse' : ''}`}
               style={!accent || streak === 0 ? { color: 'var(--strong)' } : {}}>
-              {value}<span className="text-xs font-normal" style={{ color: 'var(--muted)' }}>{unit}</span>
+              {value}<span style={{ fontSize: 12, fontWeight: 400, color: 'var(--muted)' }}>{unit}</span>
             </p>
           </div>
         ))}
       </div>
 
-      {/* Today's session */}
-      <div className="card p-4 flex items-center justify-between"
-        style={todayWork.completed ? { borderColor: 'rgba(167,139,250,0.35)' } : {}}>
+      {/* ── Today's session ──────────────────────────────────────── */}
+      <p className="section-label" style={{ marginBottom: 8 }}>Today's session</p>
+      <div className="card" style={{ padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24,
+        ...(todayWork.completed ? { borderColor: 'rgba(167,139,250,0.35)' } : {}) }}>
         <div>
-          <p className="text-[9px] tracking-widest mb-2" style={{ color: 'var(--muted)' }}>TODAY'S SESSION</p>
           {todayWork.completed
             ? <span className="badge-high">✓ {todayWork.templateName}</span>
             : todayWork.templateName
-            ? <span className="badge-medium">{todayWork.templateName} — IN PROGRESS</span>
-            : <span className="badge-low">NO SESSION STARTED</span>}
+            ? <span className="badge-medium">{todayWork.templateName} — in progress</span>
+            : <span className="badge-low">No session started</span>}
         </div>
-        <div className={`text-2xl leading-none ${todayWork.completed ? 'check-pop gradient-text' : ''}`}
-          style={!todayWork.completed ? { color: 'rgba(255,255,255,0.1)' } : {}}>
+        <div className={`font-mono ${todayWork.completed ? 'check-pop gradient-text' : ''}`}
+          style={{ fontSize: 20, color: todayWork.completed ? undefined : 'rgba(255,255,255,0.08)' }}>
           {todayWork.completed ? '✓' : '○'}
         </div>
       </div>
 
-      {/* Weekly rings */}
-      <div className="card p-5">
-        <p className="text-[9px] tracking-widest mb-5" style={{ color: 'var(--muted)' }}>WEEKLY PROGRESS</p>
-        <div className="flex justify-around">
-          <GradientRing value={weeklyTotals.cal}  max={settings.calories * 7} label="KCAL"    sub={`${weeklyTotals.days} DAYS`} />
-          <GradientRing value={weeklyTotals.prot} max={settings.protein  * 7} label="PROTEIN" sub={`${weeklyTotals.days} DAYS`} />
+      {/* ── Weekly progress ──────────────────────────────────────── */}
+      <p className="section-label" style={{ marginBottom: 8 }}>This week</p>
+      <div className="card" style={{ padding: 20, marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+          <GradientRing value={weeklyTotals.cal}  max={settings.calories * 7} label="Calories" sub={`${weeklyTotals.days} days`} />
+          <GradientRing value={weeklyTotals.prot} max={settings.protein  * 7} label="Protein"  sub={`${weeklyTotals.days} days`} />
         </div>
       </div>
 
-      {/* Today nutrition */}
-      <div className="card p-4 space-y-3">
-        <p className="text-[9px] tracking-widest" style={{ color: 'var(--muted)' }}>TODAY</p>
-        <Bar label="CALORIES" value={todayLog.calories || 0} max={settings.calories} />
-        <Bar label="PROTEIN"  value={todayLog.protein  || 0} max={settings.protein}  />
+      {/* ── Today nutrition ──────────────────────────────────────── */}
+      <p className="section-label" style={{ marginBottom: 8 }}>Today</p>
+      <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <Bar label="Calories" value={todayLog.calories || 0} max={settings.calories} />
+        <Bar label="Protein"  value={todayLog.protein  || 0} max={settings.protein}  />
         {todayLog.meals?.length > 0 && (
-          <p className="text-[9px]" style={{ color: 'var(--muted-dim)' }}>
-            {todayLog.meals.length} MEAL{todayLog.meals.length !== 1 ? 'S' : ''} LOGGED
+          <p style={{ fontSize: 11, color: 'var(--muted-dim)', margin: 0 }}>
+            {todayLog.meals.length} meal{todayLog.meals.length !== 1 ? 's' : ''} logged
           </p>
         )}
       </div>
