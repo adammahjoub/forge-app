@@ -165,6 +165,11 @@ circle { transition: stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1); }
 }
 .streak-pulse { animation: streakPulse 2.4s ease-in-out infinite; }
 
+/* ─── Nav item hover (desktop) ──────────────────────────────────── */
+nav button:not([style*="rgba(167,139,250,0.12)"]):hover span {
+  color: rgba(255,255,255,0.75) !important;
+}
+
 /* ─── Scrollbar ──────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 2px; }
 ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }

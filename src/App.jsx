@@ -148,25 +148,38 @@ export default function App() {
         {activeTab === 'settings'  && <Settings {...shared} />}
       </div>
 
-      {/* Bottom nav */}
+      {/* Bottom nav — glass sidebar style adapted to mobile bottom bar */}
       <nav className="fixed bottom-0 left-0 right-0 z-40" style={{
-        background: 'rgba(13,13,15,0.85)',
-        borderTop: '0.5px solid var(--border)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        background: 'rgba(255,255,255,0.03)',
+        borderTop: '0.5px solid rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
       }}>
         <div className="flex">
           {TABS.map(t => {
             const active = activeTab === t.id
             return (
               <button key={t.id} onClick={() => setActiveTab(t.id)}
-                className="flex-1 py-3 flex flex-col items-center gap-0.5 transition-opacity active:opacity-60">
+                className="flex-1 py-3 flex flex-col items-center gap-1"
+                style={{
+                  background: active ? 'rgba(167,139,250,0.12)' : 'transparent',
+                  transition: 'background 150ms ease, color 150ms ease',
+                }}>
                 <span className="text-base leading-none" style={active ? {
                   background: 'var(--gradient)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                } : { color: 'var(--muted)' }}>{t.icon}</span>
-                <span className="text-[9px] tracking-widest mt-0.5" style={{ color: active ? 'rgba(167,139,250,0.9)' : 'var(--muted)' }}>{t.label}</span>
+                } : {
+                  color: 'rgba(255,255,255,0.45)',
+                  transition: 'color 150ms ease',
+                }}>{t.icon}</span>
+                <span style={{
+                  fontSize: '9px',
+                  letterSpacing: '0.1em',
+                  color: active ? '#FFFFFF' : 'rgba(255,255,255,0.45)',
+                  transition: 'color 150ms ease',
+                  fontFamily: 'Space Mono, monospace',
+                }}>{t.label}</span>
               </button>
             )
           })}

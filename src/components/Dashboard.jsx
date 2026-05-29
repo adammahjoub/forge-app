@@ -88,7 +88,7 @@ export default function Dashboard({ settings, logs, workoutLogs, streak, daysOnP
       <div className="flex items-end justify-between mb-6">
         <div>
           <p className="text-[10px] tracking-[0.2em] mb-1" style={{ color: 'var(--muted)' }}>PROGRAM ACTIVE</p>
-          <h1 className="text-5xl font-bold tracking-tight" style={{ color: 'var(--strong)' }}>FORGE</h1>
+          <h1 className="text-5xl font-bold tracking-tight gradient-text">FORGE</h1>
         </div>
         <div className="text-right">
           <p className="text-[9px] tracking-widest mb-1" style={{ color: 'var(--muted)' }}>DAY</p>
