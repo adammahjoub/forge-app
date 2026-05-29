@@ -3,31 +3,26 @@ import { WORKOUT_TEMPLATES } from '../data/workouts'
 
 const todayStr = () => new Date().toISOString().split('T')[0]
 
-export default function WorkoutLogger({ workoutLogs, updateWorkoutLog, dm }) {
+export default function WorkoutLogger({ workoutLogs, updateWorkoutLog }) {
   const today     = todayStr()
   const todayWork = workoutLogs[today] || {}
 
-  const [view,      setView]      = useState('select') // 'select' | 'active'
+  const [view,      setView]      = useState('select')
   const [template,  setTemplate]  = useState(null)
   const [exercises, setExercises] = useState([])
 
   const startSession = (tmpl) => {
     const exs = tmpl.exercises.map(ex => ({
-      ...ex,
-      sets: [{ reps: ex.defaultReps, weight: ex.defaultWeight, done: false }],
+      ...ex, sets: [{ reps: ex.defaultReps, weight: ex.defaultWeight, done: false }],
     }))
-    setTemplate(tmpl)
-    setExercises(exs)
-    setView('active')
+    setTemplate(tmpl); setExercises(exs); setView('active')
     updateWorkoutLog(today, { templateId: tmpl.id, templateName: tmpl.name, completed: false, exercises: exs })
   }
 
   const resumeSession = () => {
     const tmpl = WORKOUT_TEMPLATES.find(t => t.id === todayWork.templateId)
     if (!tmpl) return
-    setTemplate(tmpl)
-    setExercises(todayWork.exercises || [])
-    setView('active')
+    setTemplate(tmpl); setExercises(todayWork.exercises || []); setView('active')
   }
 
   const addSet = (ei) => {
@@ -36,8 +31,7 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog, dm }) {
       const last = ex.sets[ex.sets.length - 1]
       return { ...ex, sets: [...ex.sets, { ...last, done: false }] }
     })
-    setExercises(updated)
-    updateWorkoutLog(today, { exercises: updated })
+    setExercises(updated); updateWorkoutLog(today, { exercises: updated })
   }
 
   const removeSet = (ei, si) => {
@@ -45,217 +39,186 @@ export default function WorkoutLogger({ workoutLogs, updateWorkoutLog, dm }) {
     const updated = exercises.map((ex, i) =>
       i !== ei ? ex : { ...ex, sets: ex.sets.filter((_, j) => j !== si) }
     )
-    setExercises(updated)
-    updateWorkoutLog(today, { exercises: updated })
+    setExercises(updated); updateWorkoutLog(today, { exercises: updated })
   }
 
   const updateSet = (ei, si, field, val) => {
     const updated = exercises.map((ex, i) =>
-      i !== ei ? ex : {
-        ...ex,
-        sets: ex.sets.map((s, j) => j !== si ? s : { ...s, [field]: val }),
-      }
+      i !== ei ? ex : { ...ex, sets: ex.sets.map((s, j) => j !== si ? s : { ...s, [field]: val }) }
     )
-    setExercises(updated)
-    updateWorkoutLog(today, { exercises: updated })
+    setExercises(updated); updateWorkoutLog(today, { exercises: updated })
   }
 
-  const toggleDone = (ei, si) => {
-    updateSet(ei, si, 'done', !exercises[ei].sets[si].done)
-  }
-
-  const completeSession = () => {
-    updateWorkoutLog(today, { completed: true })
-    setView('select')
-  }
+  const toggleDone      = (ei, si) => updateSet(ei, si, 'done', !exercises[ei].sets[si].done)
+  const completeSession = () => { updateWorkoutLog(today, { completed: true }); setView('select') }
 
   if (view === 'active' && template) {
-    return (
-      <ActiveSession
-        template={template}
-        exercises={exercises}
-        onAddSet={addSet}
-        onRemoveSet={removeSet}
-        onUpdateSet={updateSet}
-        onToggleDone={toggleDone}
-        onComplete={completeSession}
-        onBack={() => setView('select')}
-        dm={dm}
-      />
-    )
+    return <ActiveSession
+      template={template} exercises={exercises}
+      onAddSet={addSet} onRemoveSet={removeSet}
+      onUpdateSet={updateSet} onToggleDone={toggleDone}
+      onComplete={completeSession} onBack={() => setView('select')}
+    />
   }
 
-  const border = dm ? 'border-[#1E1E1E]' : 'border-gray-200'
+  const noHistory = Object.values(workoutLogs).filter(l => l.completed).length === 0
 
   return (
-    <div className="px-4 pt-6 pb-4">
-      <div className="flex items-end justify-between mb-6">
-        <div>
-          <p className="text-[10px] tracking-[0.25em] text-gray-600 mb-0.5">4-DAY SPLIT</p>
-          <h1 className="text-4xl font-bold tracking-tight">TRAINING</h1>
-        </div>
+    <div className="px-4 pt-8 pb-4 space-y-3">
+      <div className="mb-6">
+        <p className="text-[10px] tracking-[0.2em] mb-1" style={{ color: 'var(--muted)' }}>4-DAY SPLIT</p>
+        <h1 className="text-5xl font-bold tracking-tight" style={{ color: 'var(--strong)' }}>TRAINING</h1>
       </div>
 
-      {/* Today status banner */}
+      {/* Today status */}
       {todayWork.completed && (
-        <div className="border border-[#C8FF00] p-4 mb-4">
-          <p className="text-[#C8FF00] font-bold">✓ {todayWork.templateName} COMPLETE</p>
-          <p className="text-[9px] text-gray-600 mt-1">SESSION LOCKED IN FOR TODAY</p>
+        <div className="card p-4 flex items-center justify-between" style={{ borderColor: 'rgba(167,139,250,0.3)' }}>
+          <div>
+            <p className="text-[9px] tracking-widest mb-0.5" style={{ color: 'var(--muted)' }}>COMPLETED TODAY</p>
+            <p className="font-bold gradient-text">{todayWork.templateName}</p>
+          </div>
+          <span className="check-pop gradient-text text-xl">✓</span>
         </div>
       )}
       {todayWork.templateId && !todayWork.completed && (
-        <button
-          onClick={resumeSession}
-          className="w-full border border-[#C8FF00] p-4 mb-4 text-left"
-        >
-          <p className="text-[9px] tracking-widest text-[#C8FF00] mb-1">IN PROGRESS</p>
-          <p className="font-bold">{todayWork.templateName} — RESUME →</p>
+        <button onClick={resumeSession} className="w-full card p-4 text-left"
+          style={{ borderColor: 'rgba(167,139,250,0.25)' }}>
+          <p className="text-[9px] tracking-widest mb-0.5 gradient-text">IN PROGRESS</p>
+          <p className="font-bold" style={{ color: 'var(--strong)' }}>{todayWork.templateName} — RESUME →</p>
         </button>
       )}
 
-      {/* Template grid */}
-      <p className="text-[9px] tracking-widest text-gray-600 mb-3">SELECT SESSION</p>
-      <div className="space-y-2 mb-6">
+      {/* Templates */}
+      <p className="text-[9px] tracking-widest pt-2" style={{ color: 'var(--muted)' }}>SELECT SESSION</p>
+      <div className="space-y-2">
         {WORKOUT_TEMPLATES.map(tmpl => (
-          <button
-            key={tmpl.id}
-            onClick={() => startSession(tmpl)}
-            className={`w-full border ${border} p-4 text-left hover:border-[#C8FF00] transition-colors active:opacity-80`}
-          >
+          <button key={tmpl.id} onClick={() => startSession(tmpl)}
+            className="w-full card p-4 text-left transition-all duration-200 hover:border-purple-400/30 active:opacity-70">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-[9px] tracking-widest text-gray-600 mb-0.5">{tmpl.tag}</p>
-                <p className="font-bold text-base mb-1">{tmpl.name}</p>
-                <p className="text-[10px] text-gray-600 truncate">
+                <p className="text-[9px] tracking-widest mb-1 gradient-text">{tmpl.tag}</p>
+                <p className="font-bold text-base mb-1" style={{ color: 'var(--strong)' }}>{tmpl.name}</p>
+                <p className="text-[10px] truncate" style={{ color: 'var(--muted)' }}>
                   {tmpl.exercises.map(e => e.name.split(' ').slice(-1)[0]).join(' · ')}
                 </p>
               </div>
-              <span className="text-[#C8FF00] text-xl ml-3">→</span>
+              <span className="text-xl ml-3" style={{ color: 'var(--muted)' }}>→</span>
             </div>
           </button>
         ))}
       </div>
 
-      {/* Recent sessions */}
-      <p className="text-[9px] tracking-widest text-gray-600 mb-2">RECENT SESSIONS</p>
-      {(() => {
-        const recent = Object.entries(workoutLogs)
-          .filter(([, l]) => l.completed)
-          .sort((a, b) => b[0].localeCompare(a[0]))
-          .slice(0, 7)
-        if (!recent.length)
-          return <p className={`text-xs ${dm ? 'text-gray-700' : 'text-gray-400'} text-center py-4 tracking-widest`}>NO SESSIONS YET — START TRAINING</p>
-        return (
-          <div className="space-y-1">
-            {recent.map(([date, log]) => (
-              <div key={date} className={`flex justify-between items-center py-2.5 border-b ${border} text-sm`}>
-                <span className="text-gray-500 text-xs">{date}</span>
-                <span className="text-[#C8FF00] text-xs tracking-widest">{log.templateName}</span>
+      {/* Recent */}
+      <p className="text-[9px] tracking-widest pt-2" style={{ color: 'var(--muted)' }}>RECENT SESSIONS</p>
+      {noHistory ? (
+        <div className="card py-10 text-center">
+          <p className="text-3xl mb-3">🏋️</p>
+          <p className="text-sm font-bold" style={{ color: 'var(--muted)' }}>NO SESSIONS YET</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--muted-dim)' }}>START YOUR FIRST SESSION ABOVE</p>
+        </div>
+      ) : (
+        <div className="card overflow-hidden">
+          {Object.entries(workoutLogs)
+            .filter(([, l]) => l.completed)
+            .sort((a, b) => b[0].localeCompare(a[0]))
+            .slice(0, 7)
+            .map(([date, log], i, arr) => (
+              <div key={date} className="flex justify-between items-center px-4 py-3"
+                style={i < arr.length - 1 ? { borderBottom: '0.5px solid var(--border)' } : {}}>
+                <span className="text-xs" style={{ color: 'var(--muted)' }}>{date}</span>
+                <span className="text-xs font-bold gradient-text">{log.templateName}</span>
               </div>
             ))}
-          </div>
-        )
-      })()}
+        </div>
+      )}
     </div>
   )
 }
 
-function ActiveSession({ template, exercises, onAddSet, onRemoveSet, onUpdateSet, onToggleDone, onComplete, onBack, dm }) {
+function ActiveSession({ template, exercises, onAddSet, onRemoveSet, onUpdateSet, onToggleDone, onComplete, onBack }) {
   const totalSets = exercises.reduce((s, ex) => s + ex.sets.length, 0)
   const doneSets  = exercises.reduce((s, ex) => s + ex.sets.filter(s => s.done).length, 0)
   const pct       = totalSets > 0 ? (doneSets / totalSets) * 100 : 0
 
-  const border   = dm ? 'border-[#1E1E1E]' : 'border-gray-200'
-  const inputCls = `w-14 bg-transparent border ${dm ? 'border-[#2A2A2A]' : 'border-gray-300'} text-center text-sm p-1.5 outline-none focus:border-[#C8FF00] transition-colors`
+  const inputStyle = {
+    width: '54px', padding: '6px', fontSize: '13px', textAlign: 'center',
+  }
 
   return (
-    <div className="px-4 pt-6 pb-4">
+    <div className="px-4 pt-8 pb-4 space-y-4">
       <div className="flex items-end justify-between mb-2">
         <div>
-          <button onClick={onBack} className="text-[10px] text-gray-600 tracking-widest mb-1 block">← BACK</button>
-          <h1 className="text-3xl font-bold">{template.name}</h1>
-          <p className="text-[9px] text-gray-600 mt-0.5">{template.focus}</p>
+          <button onClick={onBack} className="text-[10px] tracking-widest mb-2 block"
+            style={{ color: 'var(--muted)' }}>← BACK</button>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--strong)' }}>{template.name}</h1>
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted)' }}>{template.focus}</p>
         </div>
         <div className="text-right">
-          <p className="text-[9px] tracking-widest text-gray-600">SETS</p>
-          <p className="text-3xl font-bold text-[#C8FF00]">{doneSets}<span className="text-gray-600 text-lg">/{totalSets}</span></p>
+          <p className="text-[9px] tracking-widest mb-1" style={{ color: 'var(--muted)' }}>SETS</p>
+          <p className="text-3xl font-bold leading-none">
+            <span className="gradient-text">{doneSets}</span>
+            <span style={{ color: 'var(--muted)' }} className="text-xl">/{totalSets}</span>
+          </p>
         </div>
       </div>
 
-      {/* Session progress bar */}
-      <div className={`h-[3px] ${dm ? 'bg-[#1C1C1C]' : 'bg-gray-200'} mb-6 overflow-hidden`}>
-        <div className="bar-fill h-full bg-[#C8FF00]" style={{ width: `${pct}%` }} />
+      {/* Progress bar */}
+      <div className="h-1 bar-track">
+        <div className="bar-fill" style={{ width: `${pct}%`, height: '100%' }} />
       </div>
 
-      <div className="space-y-3">
-        {exercises.map((ex, ei) => {
-          const allDone = ex.sets.every(s => s.done)
-          return (
-            <div key={ex.name} className={`border ${allDone ? 'border-[#C8FF00]/40' : border} p-4`}>
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="font-bold text-sm leading-tight">{ex.name}</p>
-                  <p className="text-[9px] text-gray-600 mt-0.5">{ex.muscle}</p>
-                </div>
-                <button
-                  onClick={() => onAddSet(ei)}
-                  className={`text-[10px] border ${dm ? 'border-[#2A2A2A] text-gray-500 hover:border-[#C8FF00] hover:text-[#C8FF00]' : 'border-gray-300 text-gray-400 hover:border-[#C8FF00] hover:text-[#C8FF00]'} px-2 py-1 transition-colors flex-shrink-0 ml-2`}
-                >
-                  + SET
-                </button>
+      {exercises.map((ex, ei) => {
+        const allDone = ex.sets.every(s => s.done)
+        return (
+          <div key={ex.name} className="card p-4"
+            style={allDone ? { borderColor: 'rgba(167,139,250,0.35)' } : {}}>
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="font-bold text-sm" style={{ color: 'var(--strong)' }}>{ex.name}</p>
+                <p className="text-[9px] tracking-widest mt-0.5" style={{ color: 'var(--muted)' }}>{ex.muscle}</p>
               </div>
-
-              {/* Column headers */}
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7" />
-                <span className="text-[9px] text-gray-600 w-14 text-center">KG</span>
-                <span className="text-[9px] text-gray-600 w-3 text-center" />
-                <span className="text-[9px] text-gray-600 w-12 text-center">REPS</span>
-                <div className="flex-1" />
-              </div>
-
-              <div className="space-y-2">
-                {ex.sets.map((set, si) => (
-                  <div key={si} className={`flex items-center gap-2 ${set.done ? 'opacity-40' : ''}`}>
-                    <button
-                      onClick={() => onToggleDone(ei, si)}
-                      className={`w-7 h-7 border flex-shrink-0 flex items-center justify-center text-xs transition-all
-                        ${set.done ? 'border-[#C8FF00] bg-[#C8FF00] text-black check-pop' : dm ? 'border-[#2A2A2A]' : 'border-gray-300'}`}
-                    >
-                      {set.done ? '✓' : <span className="text-gray-600 text-[10px]">{si + 1}</span>}
-                    </button>
-                    <input
-                      value={set.weight}
-                      onChange={e => onUpdateSet(ei, si, 'weight', e.target.value)}
-                      className={inputCls}
-                      placeholder="—"
-                    />
-                    <span className="text-gray-600 text-xs">×</span>
-                    <input
-                      value={set.reps}
-                      onChange={e => onUpdateSet(ei, si, 'reps', e.target.value)}
-                      type="number"
-                      className={inputCls}
-                      placeholder="—"
-                    />
-                    {ex.sets.length > 1 && (
-                      <button
-                        onClick={() => onRemoveSet(ei, si)}
-                        className="text-[#2A2A2A] hover:text-[#FF5555] text-lg leading-none ml-auto transition-colors"
-                      >×</button>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <button onClick={() => onAddSet(ei)} className="btn-ghost text-[10px] px-2 py-1 ml-2">+ SET</button>
             </div>
-          )
-        })}
-      </div>
 
-      <button
-        onClick={onComplete}
-        className="w-full mt-6 py-4 bg-[#C8FF00] text-black font-bold tracking-widest text-sm active:opacity-80 transition-opacity"
-      >
+            <div className="flex gap-2 mb-2 items-center">
+              <div style={{ width: 28 }} />
+              <span className="text-[9px] tracking-widest text-center" style={{ width: 54, color: 'var(--muted)' }}>KG</span>
+              <span className="text-[9px] text-center px-1" style={{ color: 'var(--muted)' }}>×</span>
+              <span className="text-[9px] tracking-widest text-center" style={{ width: 54, color: 'var(--muted)' }}>REPS</span>
+            </div>
+
+            <div className="space-y-2">
+              {ex.sets.map((set, si) => (
+                <div key={si} className="flex items-center gap-2" style={{ opacity: set.done ? 0.35 : 1 }}>
+                  <button onClick={() => onToggleDone(ei, si)}
+                    className={`flex items-center justify-center text-xs flex-shrink-0 ${set.done ? 'check-pop' : ''}`}
+                    style={{
+                      width: 28, height: 28,
+                      borderRadius: '6px',
+                      background: set.done ? 'linear-gradient(135deg, #a78bfa, #f97316)' : 'rgba(255,255,255,0.04)',
+                      border: set.done ? 'none' : '0.5px solid rgba(255,255,255,0.15)',
+                      color: set.done ? '#fff' : 'var(--muted)',
+                    }}>
+                    {set.done ? '✓' : si + 1}
+                  </button>
+                  <input value={set.weight} onChange={e => onUpdateSet(ei, si, 'weight', e.target.value)}
+                    style={inputStyle} placeholder="—" />
+                  <span className="text-xs" style={{ color: 'var(--muted)' }}>×</span>
+                  <input value={set.reps} onChange={e => onUpdateSet(ei, si, 'reps', e.target.value)}
+                    type="number" style={inputStyle} placeholder="—" />
+                  {ex.sets.length > 1 && (
+                    <button onClick={() => onRemoveSet(ei, si)}
+                      className="text-xl leading-none ml-auto"
+                      style={{ color: 'var(--muted-dim)' }}>×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })}
+
+      <button onClick={onComplete} className="w-full py-4 text-sm tracking-widest font-bold btn-primary">
         COMPLETE SESSION ✓
       </button>
     </div>

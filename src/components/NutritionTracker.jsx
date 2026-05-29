@@ -1,180 +1,150 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 
 const todayStr = () => new Date().toISOString().split('T')[0]
 
-function MacroBlock({ label, value, goal, unit, color, dm }) {
-  const remaining = goal - value
-  return (
-    <div className={`border ${dm ? 'border-[#1E1E1E]' : 'border-gray-200'} p-4 flex-1`}>
-      <p className="text-[9px] tracking-widest text-gray-600 mb-1">{label}</p>
-      <p className="text-2xl font-bold leading-none" style={{ color }}>{value}</p>
-      <p className="text-[10px] text-gray-600 mt-1">
-        {remaining > 0 ? `${remaining} ${unit} LEFT` : remaining === 0 ? 'GOAL HIT ✓' : `${Math.abs(remaining)} ${unit} OVER`}
-      </p>
-    </div>
-  )
-}
-
-function TrackBar({ label, value, max, color, dm }) {
-  const pct = Math.min((value / max) * 100, 100)
+function Bar({ label, value, max }) {
+  const pct  = Math.min((value / max) * 100, 100)
+  const over = value > max
   return (
     <div>
       <div className="flex justify-between text-[10px] mb-1.5">
-        <span className="text-gray-500 tracking-widest">{label}</span>
-        <span style={{ color }} className="font-bold">{Math.round(pct)}%</span>
+        <span style={{ color: 'var(--muted)' }}>{label}</span>
+        <span style={{ color: over ? '#f97316' : 'var(--text)' }}>{Math.round(pct)}%</span>
       </div>
-      <div className={`h-1.5 ${dm ? 'bg-[#1A1A1A]' : 'bg-gray-200'} overflow-hidden`}>
-        <div className="bar-fill h-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+      <div className="h-1.5 bar-track">
+        <div className={over ? 'bar-fill-over' : 'bar-fill'} style={{ width: `${pct}%`, height: '100%' }} />
       </div>
     </div>
   )
 }
 
-export default function NutritionTracker({ settings, logs, updateTodayLog, dm }) {
+export default function NutritionTracker({ settings, logs, updateTodayLog }) {
   const today    = todayStr()
   const todayLog = logs[today] || { calories: 0, protein: 0, meals: [] }
 
-  const [name,     setName]     = useState('')
-  const [kcal,     setKcal]     = useState('')
-  const [prot,     setProt]     = useState('')
+  const [name,      setName]      = useState('')
+  const [kcal,      setKcal]      = useState('')
+  const [prot,      setProt]      = useState('')
   const [celebrate, setCelebrate] = useState(false)
   const prevProtRef = useRef(todayLog.protein || 0)
 
-  const calPct  = (todayLog.calories || 0) / settings.calories
-  const protPct = (todayLog.protein  || 0) / settings.protein
-  const calColor  = calPct  > 1.1 ? '#FF5555' : calPct  >= 0.9 ? '#C8FF00' : calPct >= 0.5 ? '#888' : '#444'
-  const protColor = protPct > 1.05 ? '#C8FF00' : protPct >= 0.9 ? '#C8FF00' : protPct >= 0.5 ? '#888' : '#444'
-
   const addMeal = () => {
     if (!name.trim() || !kcal) return
-    const cal  = parseInt(kcal)  || 0
-    const pro  = parseInt(prot)  || 0
+    const cal   = parseInt(kcal) || 0
+    const pro   = parseInt(prot) || 0
     const meals = [...(todayLog.meals || []), { name: name.trim(), calories: cal, protein: pro, id: Date.now() }]
     const totalCal  = meals.reduce((s, m) => s + m.calories, 0)
     const totalProt = meals.reduce((s, m) => s + m.protein,  0)
-
-    const wasUnder = prevProtRef.current < settings.protein
-    const nowOver  = totalProt >= settings.protein
+    const wasUnder  = prevProtRef.current < settings.protein
     updateTodayLog({ meals, calories: totalCal, protein: totalProt })
     prevProtRef.current = totalProt
-
-    if (wasUnder && nowOver) {
+    if (wasUnder && totalProt >= settings.protein) {
       setCelebrate(true)
       setTimeout(() => setCelebrate(false), 3000)
     }
-
     setName(''); setKcal(''); setProt('')
   }
 
   const removeMeal = (id) => {
-    const meals     = (todayLog.meals || []).filter(m => m.id !== id)
+    const meals    = (todayLog.meals || []).filter(m => m.id !== id)
     const totalCal  = meals.reduce((s, m) => s + m.calories, 0)
     const totalProt = meals.reduce((s, m) => s + m.protein,  0)
     updateTodayLog({ meals, calories: totalCal, protein: totalProt })
     prevProtRef.current = totalProt
   }
 
-  const border  = dm ? 'border-[#1E1E1E]' : 'border-gray-200'
-  const inputCls = `w-full bg-transparent border ${dm ? 'border-[#2A2A2A]' : 'border-gray-300'} p-2.5 text-sm outline-none focus:border-[#C8FF00] transition-colors placeholder-[#3A3A3A]`
+  const calRem  = settings.calories - (todayLog.calories || 0)
+  const protRem = settings.protein  - (todayLog.protein  || 0)
+  const calPct  = (todayLog.calories || 0) / settings.calories
+  const protPct = (todayLog.protein  || 0) / settings.protein
+
+  const inputStyle = { width: '100%', padding: '10px 12px', fontSize: '13px' }
 
   return (
-    <div className="px-4 pt-6 pb-4 relative">
+    <div className="px-4 pt-8 pb-4 space-y-3 relative">
 
-      {/* Celebration overlay */}
+      {/* Celebration */}
       {celebrate && (
-        <div className="fixed inset-0 pointer-events-none z-50 flex flex-col items-center justify-center celebrate-fade">
-          <div className="celebrate-pop text-center">
-            <div className="text-7xl mb-3">⚡</div>
-            <div className="text-[#C8FF00] font-bold text-xl tracking-widest">PROTEIN GOAL</div>
-            <div className="text-[#C8FF00] font-bold text-xl tracking-widest">LOCKED IN</div>
+        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center celebrate-fade">
+          <div className="celebrate-pop text-center px-8 py-7 card" style={{ borderColor: 'rgba(167,139,250,0.3)' }}>
+            <div className="text-5xl mb-2">⚡</div>
+            <p className="font-bold text-xl gradient-text">{settings.protein}g</p>
+            <p className="text-xs tracking-widest mt-1" style={{ color: 'var(--muted)' }}>PROTEIN GOAL LOCKED IN</p>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex items-end justify-between mb-6">
-        <div>
-          <p className="text-[10px] tracking-[0.25em] text-gray-600 mb-0.5">DAILY FUEL</p>
-          <h1 className="text-4xl font-bold tracking-tight">NUTRITION</h1>
-        </div>
-        <div className="text-right">
-          <p className="text-[9px] tracking-widest text-gray-600">{today.slice(5)}</p>
-        </div>
+      <div className="mb-6">
+        <p className="text-[10px] tracking-[0.2em] mb-1" style={{ color: 'var(--muted)' }}>DAILY FUEL</p>
+        <h1 className="text-5xl font-bold tracking-tight" style={{ color: 'var(--strong)' }}>NUTRITION</h1>
       </div>
 
       {/* Macro blocks */}
-      <div className="flex gap-2 mb-3">
-        <MacroBlock label="CALORIES" value={todayLog.calories || 0} goal={settings.calories} unit="kcal" color={calColor}  dm={dm} />
-        <MacroBlock label="PROTEIN"  value={todayLog.protein  || 0} goal={settings.protein}  unit="g"    color={protColor} dm={dm} />
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          { label: 'CALORIES', value: todayLog.calories || 0, rem: calRem,  unit: 'kcal', pct: calPct  },
+          { label: 'PROTEIN',  value: todayLog.protein  || 0, rem: protRem, unit: 'g',    pct: protPct },
+        ].map(({ label, value, rem, unit, pct }) => (
+          <div key={label} className="card p-4">
+            <p className="text-[9px] tracking-widest mb-2" style={{ color: 'var(--muted)' }}>{label}</p>
+            <p className="text-3xl font-bold leading-none mb-1" style={{ color: 'var(--strong)' }}>{value}</p>
+            <p className="text-[10px]" style={{ color: pct > 1.05 ? '#f97316' : pct >= 0.9 ? 'rgba(167,139,250,0.9)' : 'var(--muted)' }}>
+              {rem > 0 ? `${rem} ${unit} LEFT` : rem === 0 ? 'GOAL HIT ✓' : `${Math.abs(rem)} ${unit} OVER`}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Progress bars */}
-      <div className={`border ${border} p-4 mb-3 space-y-3`}>
-        <TrackBar label="CALORIES" value={todayLog.calories || 0} max={settings.calories} color={calColor}  dm={dm} />
-        <TrackBar label="PROTEIN"  value={todayLog.protein  || 0} max={settings.protein}  color={protColor} dm={dm} />
+      <div className="card p-4 space-y-3">
+        <Bar label="CALORIES" value={todayLog.calories || 0} max={settings.calories} />
+        <Bar label="PROTEIN"  value={todayLog.protein  || 0} max={settings.protein}  />
       </div>
 
-      {/* Add meal form */}
-      <div className={`border ${border} p-4 mb-3`}>
-        <p className="text-[9px] tracking-widest text-gray-600 mb-3">LOG MEAL</p>
-        <input
-          value={name}
-          onChange={e => setName(e.target.value)}
+      {/* Add meal */}
+      <div className="card p-4 space-y-2">
+        <p className="text-[9px] tracking-widest mb-3" style={{ color: 'var(--muted)' }}>LOG MEAL</p>
+        <input value={name} onChange={e => setName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && addMeal()}
-          placeholder="MEAL NAME"
-          className={`${inputCls} mb-2`}
-        />
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <input
-            value={kcal}
-            onChange={e => setKcal(e.target.value)}
+          placeholder="MEAL NAME" style={inputStyle} />
+        <div className="grid grid-cols-2 gap-2">
+          <input value={kcal} onChange={e => setKcal(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addMeal()}
-            placeholder="KCAL"
-            type="number"
-            className={inputCls}
-          />
-          <input
-            value={prot}
-            onChange={e => setProt(e.target.value)}
+            placeholder="KCAL" type="number" style={inputStyle} />
+          <input value={prot} onChange={e => setProt(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addMeal()}
-            placeholder="PROTEIN (g)"
-            type="number"
-            className={inputCls}
-          />
+            placeholder="PROTEIN (g)" type="number" style={inputStyle} />
         </div>
-        <button
-          onClick={addMeal}
-          className="w-full py-3 bg-[#C8FF00] text-black text-xs tracking-widest font-bold active:opacity-80 transition-opacity"
-        >
+        <button onClick={addMeal} className="w-full py-3 text-xs tracking-widest font-bold btn-primary mt-1">
           + ADD MEAL
         </button>
       </div>
 
       {/* Meal list */}
-      <div className="space-y-1">
-        {(todayLog.meals || []).length === 0 && (
-          <p className={`text-center text-xs ${dm ? 'text-gray-700' : 'text-gray-400'} py-6 tracking-widest`}>
-            NO MEALS LOGGED TODAY
-          </p>
-        )}
-        {(todayLog.meals || []).map(meal => (
-          <div key={meal.id} className={`border ${border} p-3 flex items-center justify-between`}>
-            <div className="flex-1 min-w-0 mr-3">
-              <p className="font-bold text-sm truncate">{meal.name}</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">
-                {meal.calories} kcal
-                {meal.protein > 0 && <> · <span className="text-[#C8FF00]">{meal.protein}g</span> protein</>}
-              </p>
+      {(todayLog.meals || []).length === 0 ? (
+        <div className="card py-10 text-center">
+          <p className="text-3xl mb-3">🍽</p>
+          <p className="text-sm font-bold" style={{ color: 'var(--muted)' }}>NO MEALS LOGGED</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--muted-dim)' }}>ADD YOUR FIRST MEAL ABOVE</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {(todayLog.meals || []).map(meal => (
+            <div key={meal.id} className="card p-3 flex items-center justify-between">
+              <div className="flex-1 min-w-0 mr-3">
+                <p className="text-sm font-bold truncate" style={{ color: 'var(--strong)' }}>{meal.name}</p>
+                <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted)' }}>
+                  {meal.calories} kcal{meal.protein > 0 && <> · <span className="gradient-text">{meal.protein}g</span> protein</>}
+                </p>
+              </div>
+              <button onClick={() => removeMeal(meal.id)}
+                className="text-xl leading-none flex-shrink-0"
+                style={{ color: 'var(--muted-dim)' }}>×</button>
             </div>
-            <button
-              onClick={() => removeMeal(meal.id)}
-              className={`text-xl leading-none ${dm ? 'text-[#2A2A2A] hover:text-[#FF5555]' : 'text-gray-300 hover:text-red-400'} transition-colors flex-shrink-0`}
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
